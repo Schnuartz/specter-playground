@@ -42,14 +42,6 @@
       "text": "Nachricht signieren",
       "ref_en": "Sign Message"
     },
-    "MAIN_MENU_SEED_AND_WALLET": {
-      "text": "Seed & Wallet",
-      "ref_en": "Seed & Wallet"
-    },
-    "MAIN_MENU_MANAGE_SEED_WALLET": {
-      "text": "Seed / Wallet verwalten",
-      "ref_en": "Manage Seed / Wallet"
-    },
     "MAIN_MENU_CONNECT_SECTION": {
       "text": "Verbinden",
       "ref_en": "Connect"
@@ -57,14 +49,6 @@
     "MAIN_MENU_CONNECT_COMPANION": {
       "text": "Companion App verbinden",
       "ref_en": "Connect Companion App"
-    },
-    "WALLET_BAR_NO_SEED": {
-      "text": "Kein Seed",
-      "ref_en": "No Seed"
-    },
-    "WALLET_BAR_NO_WALLET": {
-      "text": "Keine Wallet",
-      "ref_en": "No Wallet"
     },
     "WALLET_MENU_EXPLORE": {
       "text": "Erkunden",
@@ -89,6 +73,10 @@
     "WALLET_MENU_CHANGE_NETWORK": {
       "text": "Netzwerk wechseln",
       "ref_en": "Change Network"
+    },
+    "WALLET_MENU_SELECT_ACCOUNT": {
+      "text": "Konto",
+      "ref_en": "Account"
     },
     "WALLET_MENU_CONNECT_EXPORT": {
       "text": "Verbinden/Exportieren",
@@ -126,22 +114,6 @@
       "text": "Schnittstellen aktivieren",
       "ref_en": "Enable Interfaces"
     },
-    "ADD_SWITCH_WALLET_MENU_WALLETS_FOR_SEED": {
-      "text": "Wallets für aktiven Seed",
-      "ref_en": "Wallets for active seed"
-    },
-    "ADD_SWITCH_WALLET_MENU_OTHER_WALLETS": {
-      "text": "Andere Wallets",
-      "ref_en": "Other wallets"
-    },
-    "ADD_SWITCH_SEED_MENU_SEEDS_FOR_WALLET": {
-      "text": "Seeds für aktive Wallet",
-      "ref_en": "Seeds for active wallet"
-    },
-    "ADD_SWITCH_SEED_MENU_OTHER_SEEDS": {
-      "text": "Andere Seeds",
-      "ref_en": "Other seeds"
-    },
     "GENERATE_SEED_FINGERPRINT": {
       "text": "Fingerprint:",
       "ref_en": "Fingerprint: "
@@ -165,14 +137,6 @@
     "ADD_SEED_IMPORT_SECTION": {
       "text": "Importieren bestehende Seed von",
       "ref_en": "Import existing Seed from"
-    },
-    "MANAGE_SW_SEED_SECTION_TITLE": {
-      "text": "Seed",
-      "ref_en": "Seed"
-    },
-    "MANAGE_SW_WALLET_SECTION_TITLE": {
-      "text": "Wallet",
-      "ref_en": "Wallet"
     },
     "PASSPHRASE_MENU_CLEAR": {
       "text": "Löschen",
@@ -215,7 +179,7 @@
       "ref_en": "Explore"
     },
     "SEEDPHRASE_MENU_RELATED_WALLETS": {
-      "text": "Zugeh\u00f6rige Wallets",
+      "text": "Zugehörige Wallets",
       "ref_en": "Related Wallets"
     },
     "CONNECT_WALLETS_SPARROW": {
@@ -350,14 +314,6 @@
       "text": "Aktion: ",
       "ref_en": "Action: "
     },
-    "ACTION_SCREEN_BACK": {
-      "text": "Zurück",
-      "ref_en": "Back"
-    },
-    "MODAL_CLOSE_BTN": {
-      "text": "Schließen",
-      "ref_en": "Close"
-    },
     "MODAL_DELETE_WALLET_TEXT": {
       "text": "Wallet \"%s\" löschen?\nDies kann nicht rückgängig gemacht werden.",
       "ref_en": "Delete wallet \"%s\"?\nThis cannot be undone."
@@ -410,10 +366,6 @@
       "text": "Abbrechen",
       "ref_en": "Cancel"
     },
-    "COMMON_DELETE": {
-      "text": "Löschen",
-      "ref_en": "Delete"
-    },
     "MENU_MANAGE_WALLET": {
       "text": "Wallet verwalten",
       "ref_en": "Manage Wallet"
@@ -429,18 +381,10 @@
     "MENU_CHANGE_CLEAR_PASSPHRASE": {
       "text": "Passphrase ändern / löschen",
       "ref_en": "Change / Clear Passphrase"
-    },    
+    },
     "MENU_CONNECT_SW_WALLET": {
       "text": "Companion App verbinden",
       "ref_en": "Connect Companion App"
-    },
-    "MENU_SWITCH_ADD_SEED": {
-      "text": "Seed wechseln / hinzufügen",
-      "ref_en": "Switch / Add Seed"
-    },
-    "MENU_SWITCH_ADD_WALLET": {
-      "text": "Wallet wechseln / hinzufügen",
-      "ref_en": "Switch / Add Wallet"
     },
     "MENU_ADD_SEED": {
       "text": "Seed hinzufügen",
@@ -522,26 +466,6 @@
       "text": "Willkommen bei Specter! Diese kurze Tour zeigt dir die wichtigsten Funktionen deiner Hardware-Wallet.",
       "ref_en": "Welcome to Specter! This quick tour will show you the main features of your hardware wallet."
     },
-    "TOUR_LANGUAGE": {
-      "text": "Tippe hier, um die Anzeigesprache zu ändern.",
-      "ref_en": "Tap here to change the display language."
-    },
-    "TOUR_LOCK": {
-      "text": "Sperre dein Gerät, wenn du es nicht benutzt. Zum Entsperren brauchst du deine PIN.",
-      "ref_en": "Lock your device when not in use. You'll need your PIN to unlock."
-    },
-    "TOUR_INTERFACES": {
-      "text": "Diese Symbole zeigen verfügbare Schnittstellen: QR-Scanner, USB, SD-Karte und SmartCard.",
-      "ref_en": "These icons show available interfaces: QR scanner, USB, SD card, and SmartCard."
-    },
-    "TOUR_BATTERY": {
-      "text": "Der Batteriestatus wird hier angezeigt, wenn das Gerät mit Batterie läuft.",
-      "ref_en": "Battery status is shown here when running on battery power."
-    },
-    "TOUR_POWER": {
-      "text": "Tippe hier, um die Batteriesimulation ein-/auszuschalten (nur Demo).",
-      "ref_en": "Tap here to toggle battery simulation on/off (demo only)."
-    },
     "TOUR_WALLET_BAR": {
       "text": "Deine aktive Wallet-Info erscheint hier. Sie ist leer, bis du eine Wallet erstellst oder importierst.",
       "ref_en": "Your active wallet info appears here. It's empty until you create or import a wallet."
@@ -553,6 +477,570 @@
     "TOUR_SKIP_BTN": {
       "text": "Tour beenden",
       "ref_en": "Skip Tour"
+    },
+    "SCHN_SCAN": {
+      "text": "Scannen",
+      "ref_en": "Scan"
+    },
+    "SCHN_RECEIVE": {
+      "text": "Empfangen",
+      "ref_en": "Receive"
+    },
+    "SCHN_SD_CARD": {
+      "text": "SD-Karte",
+      "ref_en": "SD Card"
+    },
+    "SCHN_SELECT_SEED": {
+      "text": "Seed auswählen...",
+      "ref_en": "Select seed..."
+    },
+    "SCHN_NO_SEED_LOADED": {
+      "text": "Kein Seed geladen",
+      "ref_en": "No seed loaded"
+    },
+    "SCHN_ADD_NEW_WALLET": {
+      "text": "Neue Wallet hinzufügen",
+      "ref_en": "Add New Wallet"
+    },
+    "SCHN_WALLETS": {
+      "text": "Wallets",
+      "ref_en": "Wallets"
+    },
+    "SCHN_LOAD_SEED_FOR_WALLETS": {
+      "text": "Seed laden, um Wallets anzuzeigen",
+      "ref_en": "Load a seed to see wallets"
+    },
+    "SCHN_WIPE_DEVICE_QUESTION": {
+      "text": "Gerät löschen?",
+      "ref_en": "Wipe Device?"
+    },
+    "SCHN_WIPE_WARNING": {
+      "text": "Dies löscht alle Seeds, Wallets und\\nEinstellungen von diesem Gerät.\\n\\nDiese Aktion kann nicht rückgängig gemacht werden!",
+      "ref_en": "This will erase all seeds, wallets,\\nand settings from this device.\\n\\nThis action cannot be undone!"
+    },
+    "SCHN_CONFIRM_WIPE": {
+      "text": "Ja, Gerät löschen",
+      "ref_en": "Yes, Wipe Device"
+    },
+    "SCHN_CANCEL": {
+      "text": "Abbrechen",
+      "ref_en": "Cancel"
+    },
+    "SCHN_ADD_WALLET": {
+      "text": "Wallet hinzufügen",
+      "ref_en": "Add Wallet"
+    },
+    "SCHN_WALLET_IMPORT_INFO": {
+      "text": "Wallet-Deskriptor importieren oder manuell erstellen:",
+      "ref_en": "Import a wallet descriptor or create manually:"
+    },
+    "SCHN_SCAN_DESCRIPTOR": {
+      "text": "Deskriptor scannen (QR)",
+      "ref_en": "Scan Descriptor (QR)"
+    },
+    "SCHN_LOAD_FROM_SD": {
+      "text": "Von SD-Karte laden",
+      "ref_en": "Load from SD Card"
+    },
+    "SCHN_CREATE_MANUALLY": {
+      "text": "Oder manuell erstellen:",
+      "ref_en": "Or create manually:"
+    },
+    "SCHN_NAME": {
+      "text": "Name",
+      "ref_en": "Name"
+    },
+    "SCHN_MULTISIG": {
+      "text": "Multi-Sig",
+      "ref_en": "Multi-Sig"
+    },
+    "SCHN_THRESHOLD": {
+      "text": "Schwellenwert",
+      "ref_en": "Threshold"
+    },
+    "SCHN_SIGNERS": {
+      "text": "Signierer",
+      "ref_en": "Signers"
+    },
+    "SCHN_CREATE_WALLET": {
+      "text": "Wallet erstellen",
+      "ref_en": "Create Wallet"
+    },
+    "SCHN_RECEIVE_ADDRESS": {
+      "text": "Empfangsadresse",
+      "ref_en": "Receive Address"
+    },
+    "SCHN_GENERATE_NEW_SEED": {
+      "text": "Neuen Seed erzeugen",
+      "ref_en": "Generate New Seed"
+    },
+    "SCHN_FINGERPRINT": {
+      "text": "Fingerprint",
+      "ref_en": "Fingerprint"
+    },
+    "SCHN_NEW_KEY_WARNING": {
+      "text": "Ein neuer Master-Key wird erzeugt.\\nSeed-Wörter sicher aufbewahren!",
+      "ref_en": "A new master key will be generated.\\nStore the seed words safely!"
+    },
+    "SCHN_GENERATE_KEY": {
+      "text": "Key erzeugen",
+      "ref_en": "Generate Key"
+    },
+    "SCHN_LANGUAGE": {
+      "text": "Sprache",
+      "ref_en": "Language"
+    },
+    "SCHN_INTERFACES": {
+      "text": "Schnittstellen",
+      "ref_en": "Interfaces"
+    },
+    "SCHN_FIRMWARE": {
+      "text": "Firmware",
+      "ref_en": "Firmware"
+    },
+    "SCHN_VERSION": {
+      "text": "Version",
+      "ref_en": "Version"
+    },
+    "SCHN_PLATFORM": {
+      "text": "Plattform",
+      "ref_en": "Platform"
+    },
+    "SCHN_BUILD": {
+      "text": "Build",
+      "ref_en": "Build"
+    },
+    "SCHN_UPDATE_VIA": {
+      "text": "Aktualisieren über",
+      "ref_en": "Update via"
+    },
+    "SCHN_UPDATE_FROM_SD": {
+      "text": "Von SD-Karte aktualisieren",
+      "ref_en": "Update from SD Card"
+    },
+    "SCHN_DEVICE_LOCKED": {
+      "text": "Gerät gesperrt",
+      "ref_en": "Device Locked"
+    },
+    "SCHN_WRONG_PIN": {
+      "text": "Falsche PIN",
+      "ref_en": "Wrong PIN"
+    },
+    "SCHN_ADD_PASSPHRASE": {
+      "text": "Passphrase hinzufügen",
+      "ref_en": "Add Passphrase"
+    },
+    "SCHN_BASE_SEED_PREFIX": {
+      "text": "Basis-Seed: ",
+      "ref_en": "Base seed: "
+    },
+    "SCHN_PASSPHRASE_EXPLAIN": {
+      "text": "Eine Passphrase erzeugt eine vollständig\\nandere Wallet. Der ursprüngliche Seed\\nohne Passphrase bleibt unverändert.",
+      "ref_en": "A passphrase creates a completely\\ndifferent wallet. The original seed\\nwithout passphrase stays untouched."
+    },
+    "SCHN_PASSPHRASE": {
+      "text": "Passphrase",
+      "ref_en": "Passphrase"
+    },
+    "SCHN_PASSPHRASE_HINT": {
+      "text": "Feld antippen und Passphrase eingeben.\\nMit OK auf der Tastatur bestätigen.",
+      "ref_en": "Tap the field to type your passphrase.\\nPress OK on keyboard to confirm."
+    },
+    "SCHN_ENTER_SEED_WORDS": {
+      "text": "Seed-Wörter eingeben",
+      "ref_en": "Enter Seed Words"
+    },
+    "SCHN_ADD": {
+      "text": "Hinzufügen",
+      "ref_en": "Add"
+    },
+    "SCHN_IMPORT_SEED": {
+      "text": "Seed importieren",
+      "ref_en": "Import Seed"
+    },
+    "SCHN_EXPORT_QR": {
+      "text": "Über QR-Code exportieren",
+      "ref_en": "Export via QR Code"
+    },
+    "SCHN_EXPORT_SD": {
+      "text": "Auf SD-Karte exportieren",
+      "ref_en": "Export to SD Card"
+    },
+    "SCHN_EXPORT_XPUB": {
+      "text": "xPub exportieren",
+      "ref_en": "Export xPub"
+    },
+    "SCHN_EXPORT_MULTISIG": {
+      "text": "Multisig-Konfiguration exportieren",
+      "ref_en": "Export Multisig Config"
+    },
+    "SCHN_CONNECT_COMPANION": {
+      "text": "Companion-App verbinden",
+      "ref_en": "Connect Companion App"
+    },
+    "SCHN_RENAME_WALLET": {
+      "text": "Wallet umbenennen",
+      "ref_en": "Rename Wallet"
+    },
+    "SCHN_RENAME_HINT": {
+      "text": "Namensfeld antippen, bearbeiten und mit OK bestätigen.",
+      "ref_en": "Tap the name field to edit, then press OK."
+    },
+    "SCHN_SCAN_QR_CODE": {
+      "text": "QR-Code scannen",
+      "ref_en": "Scan QR Code"
+    },
+    "SCHN_POINT_CAMERA": {
+      "text": "Kamera auf QR-Code richten",
+      "ref_en": "Point camera at QR code"
+    },
+    "SCHN_DETECTS_TYPES": {
+      "text": "Erkennt: Transaktion | Deskriptor | Adresse",
+      "ref_en": "Detects: Transaction | Descriptor | Address"
+    },
+    "SCHN_NO_SD": {
+      "text": "Keine SD-Karte erkannt",
+      "ref_en": "No SD card detected"
+    },
+    "SCHN_DELETE": {
+      "text": "Löschen",
+      "ref_en": "Delete"
+    },
+    "SCHN_SECURITY_SETTINGS": {
+      "text": "Sicherheitseinstellungen",
+      "ref_en": "Security Settings"
+    },
+    "SCHN_BACKUP_RESTORE": {
+      "text": "Sichern / Wiederherstellen",
+      "ref_en": "Backup / Restore"
+    },
+    "SCHN_FIRMWARE_INFO": {
+      "text": "Firmware-Info",
+      "ref_en": "Firmware Info"
+    },
+    "SCHN_DANGER_ZONE": {
+      "text": "Gefahrenbereich",
+      "ref_en": "Danger Zone"
+    },
+    "SCHN_WIPE_DEVICE": {
+      "text": "Gerät löschen",
+      "ref_en": "Wipe Device"
+    },
+    "SCHN_NO_SEED_SELECTED": {
+      "text": "Kein Seed ausgewählt",
+      "ref_en": "No seed selected"
+    },
+    "SCHN_PASSPHRASE_ACTIVE": {
+      "text": "+ Passphrase",
+      "ref_en": "+ Passphrase"
+    },
+    "SCHN_GO_DASHBOARD": {
+      "text": "Zum Dashboard",
+      "ref_en": "Go to Dashboard"
+    },
+    "SCHN_SET_PASSPHRASE": {
+      "text": "Passphrase setzen",
+      "ref_en": "Set Passphrase"
+    },
+    "SCHN_SHOW_SEED_WORDS": {
+      "text": "Seed-Wörter anzeigen",
+      "ref_en": "Show Seed Words"
+    },
+    "SCHN_BIP85": {
+      "text": "BIP85-Ableitung",
+      "ref_en": "BIP85 Derivation"
+    },
+    "SCHN_BACKUP_SEED": {
+      "text": "Seed sichern",
+      "ref_en": "Backup Seed"
+    },
+    "SCHN_STORE_SEED": {
+      "text": "Seed speichern",
+      "ref_en": "Store Seed"
+    },
+    "SCHN_DELETE_SEED": {
+      "text": "Seed löschen",
+      "ref_en": "Delete Seed"
+    },
+    "SCHN_SEED_MANAGEMENT": {
+      "text": "Seed-Verwaltung",
+      "ref_en": "Seed Management"
+    },
+    "SCHN_IMPORT_QR": {
+      "text": "Von QR importieren",
+      "ref_en": "Import from QR"
+    },
+    "SCHN_IMPORT_SD": {
+      "text": "Von SD-Karte importieren",
+      "ref_en": "Import from SD Card"
+    },
+    "SCHN_ENTER_MANUALLY": {
+      "text": "Manuell eingeben",
+      "ref_en": "Enter Manually"
+    },
+    "SCHN_LOADED_SEEDS": {
+      "text": "Geladene Seeds",
+      "ref_en": "Loaded Seeds"
+    },
+    "SCHN_SEED_WORDS": {
+      "text": "Seed-Wörter",
+      "ref_en": "Seed Words"
+    },
+    "SCHN_SEED_WARNING": {
+      "text": "Seed-Wörter niemals weitergeben!\\nWer diese Wörter kennt, kontrolliert\\ndeine Bitcoin.",
+      "ref_en": "Never share your seed words!\\nAnyone with these words controls\\nyour Bitcoin."
+    },
+    "SCHN_REVEAL_SEED": {
+      "text": "Seed-Wörter anzeigen",
+      "ref_en": "Reveal Seed Words"
+    },
+    "SCHN_HIDE_SEED": {
+      "text": "Seed-Wörter verbergen",
+      "ref_en": "Hide Seed Words"
+    },
+    "SCHN_SETTINGS": {
+      "text": "Einstellungen",
+      "ref_en": "Settings"
+    },
+    "SCHN_DEVICE": {
+      "text": "Gerät",
+      "ref_en": "Device"
+    },
+    "SCHN_POWER": {
+      "text": "Stromversorgung",
+      "ref_en": "Power"
+    },
+    "SCHN_LOCK_DEVICE": {
+      "text": "Gerät sperren",
+      "ref_en": "Lock Device"
+    },
+    "SCHN_MANAGE_INTERFACES": {
+      "text": "Schnittstellen verwalten",
+      "ref_en": "Manage Interfaces"
+    },
+    "SCHN_THEME": {
+      "text": "Theme",
+      "ref_en": "Theme"
+    },
+    "SCHN_SECURITY": {
+      "text": "Sicherheit",
+      "ref_en": "Security"
+    },
+    "SCHN_SHOW_ADVANCED": {
+      "text": "Erweiterte Details anzeigen",
+      "ref_en": "Show Advanced Details"
+    },
+    "SCHN_SHOW_RECEIVE": {
+      "text": "Empfangsadressen anzeigen",
+      "ref_en": "Show Receive Addresses"
+    },
+    "SCHN_SHOW_CHANGE": {
+      "text": "Wechselgeldadressen anzeigen",
+      "ref_en": "Show Change Addresses"
+    },
+    "SCHN_SHOW_COSIGNERS": {
+      "text": "Co-Signierer anzeigen",
+      "ref_en": "Show Co-Signers"
+    },
+    "SCHN_EXPORT_WALLET": {
+      "text": "Wallet exportieren",
+      "ref_en": "Export Wallet"
+    },
+    "SCHN_SIGN_MESSAGE": {
+      "text": "Nachricht signieren",
+      "ref_en": "Sign Message"
+    },
+    "SCHN_SIGN_TRANSACTION": {
+      "text": "Transaktion signieren",
+      "ref_en": "Sign Transaction"
+    },
+    "SCHN_SENDING_TO": {
+      "text": "Senden an",
+      "ref_en": "Sending to"
+    },
+    "SCHN_AMOUNT": {
+      "text": "Betrag",
+      "ref_en": "Amount"
+    },
+    "SCHN_FEE": {
+      "text": "Gebühr",
+      "ref_en": "Fee"
+    },
+    "SCHN_WALLET": {
+      "text": "Wallet",
+      "ref_en": "Wallet"
+    },
+    "SCHN_CONFIRM_SIGN": {
+      "text": "Bestätigen & signieren",
+      "ref_en": "Confirm & Sign"
+    },
+    "SCHN_REJECT": {
+      "text": "Ablehnen",
+      "ref_en": "Reject"
+    },
+    "SCHN_WALLETS_MAIN_SEED": {
+      "text": "Wallets des Haupt-Seeds",
+      "ref_en": "Wallets from main seed"
+    },
+    "SCHN_NO_WALLETS": {
+      "text": "Keine Wallets registriert",
+      "ref_en": "No wallets registered"
+    },
+    "SCHN_XPUB_EXPORT": {
+      "text": "xPub-Export",
+      "ref_en": "xPub Export"
+    },
+    "SCHN_NO_WALLET_SELECTED": {
+      "text": "Keine Wallet ausgewählt",
+      "ref_en": "No wallet selected"
+    },
+    "SCHN_WALLET_TYPE": {
+      "text": "WALLET-TYP",
+      "ref_en": "WALLET TYPE"
+    },
+    "SCHN_ADDRESS_TYPE": {
+      "text": "ADRESSTYP",
+      "ref_en": "ADDRESS TYPE"
+    },
+    "SCHN_ACCOUNT": {
+      "text": "KONTO",
+      "ref_en": "ACCOUNT"
+    },
+    "SCHN_SHARED_WITH": {
+      "text": "GETEILT MIT",
+      "ref_en": "SHARED WITH"
+    },
+    "SCHN_RECEIVE_ADDRESSES": {
+      "text": "Empfangsadressen",
+      "ref_en": "Receive Addresses"
+    },
+    "SCHN_CHANGE_ADDRESSES": {
+      "text": "Wechselgeldadressen",
+      "ref_en": "Change Addresses"
+    },
+    "SCHN_ACCOUNT_SHORT": {
+      "text": "Konto ",
+      "ref_en": "Account "
+    },
+    "SCHN_WALLET_NAME_PREFIX": {
+      "text": "Wallet ",
+      "ref_en": "Wallet "
+    },
+    "SCHN_SHARE_PREFIX": {
+      "text": "Teilen: ",
+      "ref_en": "Share: "
+    },
+    "SCHN_EXPORT_VIA_PREFIX": {
+      "text": "Export über ",
+      "ref_en": "Export via "
+    },
+    "SCHN_WORD_PREFIX": {
+      "text": "Wort ",
+      "ref_en": "Word "
+    },
+    "SCHN_OF_INFIX": {
+      "text": " von ",
+      "ref_en": " of "
+    },
+    "SCHN_EXPORT_PREFIX": {
+      "text": "Export: ",
+      "ref_en": "Export: "
+    },
+    "SCHN_KEY_NAME_PREFIX": {
+      "text": "Key ",
+      "ref_en": "Key "
+    },
+    "SCHN_DELETE_PREFIX": {
+      "text": "Löschen: ",
+      "ref_en": "Delete "
+    },
+    "SCHN_FINGERPRINT_PREFIX": {
+      "text": "Fingerprint: ",
+      "ref_en": "Fingerprint: "
+    },
+    "SCHN_LOAD_LANGUAGE_SD": {
+      "text": "Sprache von SD-Karte laden",
+      "ref_en": "Load language from SD Card"
+    },
+    "SCHN_LOAD_THEME_SD": {
+      "text": "Theme von SD-Karte laden",
+      "ref_en": "Load theme from SD Card"
+    },
+    "SCHN_ACCOUNT_PREFIX": {
+      "text": "Konto: ",
+      "ref_en": "Account: "
+    },
+    "SCHN_SEED_PREFIX": {
+      "text": "Seed: ",
+      "ref_en": "Seed: "
+    },
+    "SCHN_CHANGE": {
+      "text": "Wechselgeld",
+      "ref_en": "Change"
+    },
+    "SCHN_SHARED": {
+      "text": "Geteilt",
+      "ref_en": "Shared"
+    },
+    "SCHN_NO_COMPATIBLE_JSON": {
+      "text": "Keine kompatible JSON-Datei auf der SD-Karte gefunden",
+      "ref_en": "No compatible JSON file found on the SD card"
+    },
+    "SCHN_INVALID_JSON": {
+      "text": "Die JSON-Datei ist ungültig oder inkompatibel",
+      "ref_en": "The JSON file is invalid or incompatible"
+    },
+    "SCHN_NATIVE_SEGWIT": {
+      "text": "Native Segwit",
+      "ref_en": "Native Segwit"
+    },
+    "SCHN_NESTED_SEGWIT": {
+      "text": "Nested Segwit",
+      "ref_en": "Nested Segwit"
+    },
+    "SCHN_LEGACY": {
+      "text": "Legacy",
+      "ref_en": "Legacy"
+    },
+    "SCHN_TAPROOT": {
+      "text": "Taproot",
+      "ref_en": "Taproot"
+    },
+    "SCHN_OTHER": {
+      "text": "Andere",
+      "ref_en": "Other"
+    },
+    "SCHN_WALLET_DETAILS": {
+      "text": "Wallet-Details",
+      "ref_en": "Wallet Details"
+    },
+    "SCHN_DELETE_WALLET": {
+      "text": "Wallet löschen",
+      "ref_en": "Delete Wallet"
+    },
+    "SCHN_PSBT": {
+      "text": "PSBT",
+      "ref_en": "PSBT"
+    },
+    "SCHN_DESCRIPTOR": {
+      "text": "Deskriptor",
+      "ref_en": "Descriptor"
+    },
+    "SCHN_ADDRESS": {
+      "text": "Adresse",
+      "ref_en": "Address"
+    },
+    "SCHN_FILE": {
+      "text": "Datei",
+      "ref_en": "File"
+    },
+    "SCHN_IMPORTED_KEY": {
+      "text": "Importierter Key",
+      "ref_en": "Imported Key"
+    },
+    "HELP_SHOW_SEED": {
+      "text": "Zeigt die Wiederherstellungswörter des ausgewählten Seeds. Halte sie geheim und offline.",
+      "ref_en": "Shows the recovery words for the selected seed. Keep them private and offline."
     }
   }
 }

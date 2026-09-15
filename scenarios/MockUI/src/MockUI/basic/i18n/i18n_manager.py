@@ -24,6 +24,32 @@ class I18nManager(SettingFileManager):
     STR_MISSING = "[MISSING]"
     STR_UNKNOWN_KEY = "[UNKNOWN_KEY]"
 
+    def _scan_available_files(self):
+        """Expose only binaries matching this firmware's generated key table."""
+        super()._scan_available_files()
+        compatible = []
+        for language_code in self.available_files:
+            path = self.FLASH_DIR + "/" + self.COMPILER.get_binary_filename(
+                language_code
+            )
+            valid, error = self.COMPILER.validate_binary_file(path, self.KEYS_CLASS)
+            if valid:
+                compatible.append(language_code)
+            else:
+                print(
+                    "Warning: Language '{}' is incompatible (skipping): {}".format(
+                        language_code, error
+                    )
+                )
+        self.available_files = compatible
+
+        if self.DEFAULT_SETTING_FILE not in self.available_files:
+            print(
+                "CRITICAL ERROR: Compatible default language '{}' not found!".format(
+                    self.DEFAULT_SETTING_FILE
+                )
+            )
+
     # --- Core translation method ---
 
     def t(self, key):
