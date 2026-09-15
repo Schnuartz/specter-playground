@@ -20,6 +20,13 @@ class SpecterColorPalette:
     DANGER     = 7
     CANVAS     = 8
     INK        = 9
+    ACCENT_DARK      = 10
+    SURFACE_SELECTED = 11
+    MUTED_TEXT       = 12
+    MUTED            = 13
+    DIVIDER          = 14
+    PURE_BLACK       = 15
+    WARNING_SURFACE  = 16
 
 
 class SpecterFontPalette:
@@ -29,6 +36,7 @@ class SpecterFontPalette:
     TITLE = 0
     TEXT  = 1
     SMALL = 2
+    CAPTION = 3
 
 
 class SpecterStylePalette:

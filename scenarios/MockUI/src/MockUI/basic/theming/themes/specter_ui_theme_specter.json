@@ -6,24 +6,32 @@
   },
   "colors": {
     "PRIMARY":    "#1F99E5",
-    "SECONDARY":  "#FF7A7A",
-    "TERTIARY":   "#04070B",
-    "QUATERNARY": "#1E2734",
-    "NEUTRAL":    "#D1D5DB",
-    "SUCCESS":    "#00D100",
-    "WARNING":    "#FF9A00",
-    "DANGER":     "#E33630",
-    "CANVAS":     "#0C1A27",
-    "INK":        "#FCFCFC"
+    "SECONDARY":  "#1F99E5",
+    "TERTIARY":   "#081A2A",
+    "QUATERNARY": "#24384C",
+    "NEUTRAL":    "#7D91A5",
+    "SUCCESS":    "#31D39A",
+    "WARNING":    "#F5B84B",
+    "DANGER":     "#FF6878",
+    "CANVAS":     "#081A2A",
+    "INK":        "#F5F8FC",
+    "ACCENT_DARK":      "#1773AC",
+    "SURFACE_SELECTED": "#2E4864",
+    "MUTED_TEXT":       "#7D91A5",
+    "MUTED":            "#5C6E80",
+    "DIVIDER":          "#3A4E63",
+    "PURE_BLACK":       "#000000",
+    "WARNING_SURFACE":  "#332912"
   },
   "fonts": {
     "TITLE": "montserrat:28",
     "TEXT":  "montserrat:22",
-    "SMALL": "montserrat:16"
+    "SMALL": "montserrat:16",
+    "CAPTION": "montserrat:12"
   },
   "styles": {
     "CONTAINER.SCREEN":           { "style": ["@APPEARANCE.VISIBLE", "@LAYOUT.BARE", "@BG.DARK", "@LAYOUT.FLEX_COL"], "flex_main_place": "START" },
-    "CONTAINER.NAVBAR":           { "style": ["@APPEARANCE.VISIBLE", "@LAYOUT.BARE", "@BG.DEFAULT", "@BORDER.TOP", "@LAYOUT.PARENT_WIDTH", "@LAYOUT.FLEX_ROW"], "radius": 0, "clip_corner": "True", "height": "pct(8)", "flex_main_place": "SPACE_AROUND", "flex_cross_place": "CENTER" , "flex_track_place": "CENTER"},
+    "CONTAINER.NAVBAR":           { "style": ["@APPEARANCE.VISIBLE", "@LAYOUT.BARE", "@BG.DEFAULT", "@BORDER.TOP", "@LAYOUT.PARENT_WIDTH", "@LAYOUT.FLEX_ROW"], "radius": 0, "clip_corner": "True", "height": 56, "flex_main_place": "SPACE_AROUND", "flex_cross_place": "CENTER" , "flex_track_place": "CENTER"},
     "CONTAINER.DROPUP":           { "style": ["@APPEARANCE.VISIBLE", "@LAYOUT.PARENT_WIDTH", "@LAYOUT.FLEX_COL", "@LAYOUT.START", "@FG.DEFAULT", "@BG.DEFAULT", "@TEXT.TITLE"], "radius": 20, "height": "SIZE_CONTENT" },
     "CONTAINER.DROP_UP_ROW":      { "style": ["@APPEARANCE.TRANSPARENT", "@LAYOUT.BARE", "@LAYOUT.PARENT_WIDTH", "@LAYOUT.FLEX_ROW", "@FG.DEFAULT", "@TEXT.TITLE", "@LAYOUT.ALL_CENTERED", "@TEXT.LEFT"], "height": "SIZE_CONTENT", "pad_left": 10, "pad_right": 10, "pad_column": 5, "pad_top": 2, "pad_bottom": 10 },    
     "CONTAINER.APP_SCREEN":       { "style": ["@APPEARANCE.VISIBLE", "@BG.DARK", "@LAYOUT.BARE", "@LAYOUT.FLEX_COL", "@LAYOUT.GROWS", "@LAYOUT.PARENT_WIDTH"]},
