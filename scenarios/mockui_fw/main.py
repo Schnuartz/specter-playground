@@ -30,7 +30,7 @@ gc.collect()
 specter_state = DeviceState()
 specter_state.has_battery = True
 specter_state.battery_pct = 100
-specter_state.charging = False
+specter_state.is_charging = False
 
 specter_state._hasQR = True
 specter_state._enabledQR = True
