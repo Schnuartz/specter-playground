@@ -66,7 +66,7 @@ class Icon:
     to add icons to buttons/containers with flex layout alongside labels.
     """
     
-    def __init__(self, pattern, width, height):
+    def __init__(self, pattern, width, height, color=None):
         """
         Initialize an icon with a bitmap pattern.
         
@@ -79,7 +79,18 @@ class Icon:
         self.pattern = pattern
         self.width = width
         self.height = height
+        self.color = color
         self._dsc = None
+
+    def __call__(self, color):
+        """Return a lightweight coloured view of this bitmap.
+
+        The A8 bitmap remains shared; LVGL applies the requested colour as an
+        image recolour.  This API is used by the Schnuartz layout components.
+        """
+        icon = Icon(self.pattern, self.width, self.height, color)
+        icon._dsc = self._dsc
+        return icon
     
     def get_image_dsc(self):
         """Return the ``lv.image_dsc_t`` for this icon, building it once on first call.
@@ -96,3 +107,13 @@ class Icon:
                 self.pattern, self.width, self.height
             )
         return self._dsc
+
+    def add_to_parent(self, image, zoom=256):
+        """Configure an existing ``lv.image`` with this icon."""
+        image.set_src(self.get_image_dsc())
+        image.set_size(self.width * zoom // 256, self.height * zoom // 256)
+        image.set_scale(zoom)
+        if self.color is not None:
+            image.set_style_image_recolor(self.color, 0)
+            image.set_style_image_recolor_opa(lv.OPA.COVER, 0)
+        return image

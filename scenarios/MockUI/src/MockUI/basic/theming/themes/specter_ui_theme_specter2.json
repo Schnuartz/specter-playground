@@ -14,16 +14,24 @@
     "WARNING":    "#D17700",
     "DANGER":     "#D10000",
     "CANVAS":     "#000000",
-    "INK":        "#00D100"
+    "INK":        "#00D100",
+    "ACCENT_DARK":      "#008B00",
+    "SURFACE_SELECTED": "#183018",
+    "MUTED_TEXT":       "#8BBF8B",
+    "MUTED":            "#527052",
+    "DIVIDER":          "#315231",
+    "PURE_BLACK":       "#000000",
+    "WARNING_SURFACE":  "#332900"
   },
   "fonts": {
     "TITLE": "unscii:16",
     "TEXT":  "unscii:16",
-    "SMALL": "unscii:8"
+    "SMALL": "unscii:8",
+    "CAPTION": "unscii:8"
   },
   "styles": {
     "CONTAINER.SCREEN":           { "style": ["@APPEARANCE.VISIBLE", "@LAYOUT.BARE", "@BG.DARK"], "layout": "FLEX", "flex_flow": "COLUMN" },
-    "CONTAINER.NAVBAR":           { "style": ["@APPEARANCE.VISIBLE", "@LAYOUT.BARE", "@BG.DEFAULT", "@BORDER.TOP"], "radius": 0, "border_width": 0,"border_color": "@INK", "clip_corner": "True", "width": "pct(100)", "height": "pct(8)"},
+    "CONTAINER.NAVBAR":           { "style": ["@APPEARANCE.VISIBLE", "@LAYOUT.BARE", "@BG.DEFAULT", "@BORDER.TOP"], "radius": 0, "border_width": 0,"border_color": "@INK", "clip_corner": "True", "width": "pct(100)", "height": 56},
     "CONTAINER.CONTENT":          { "style": ["@APPEARANCE.TRANSPARENT", "@LAYOUT.BARE", "@LAYOUT.FLEX_COL", "@LAYOUT.GROWS"], "width": "pct(100)" },
     "CONTAINER.MAIN_MENU":        {},
     "CONTAINER.TITLED_SCREEN":    { "style": ["@APPEARANCE.TRANSPARENT", "@LAYOUT.BARE", "@LAYOUT.FLEX_COL", "@LAYOUT.GROWS"], "width": "pct(100)", "flex_main_place": "START"},
