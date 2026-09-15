@@ -55,3 +55,31 @@ nix develop -c make simulate SCRIPT=udisplay_demo.py
 
 ### UDisplay Demo
 ![](./docs/udisplay_demo.png)
+
+## Schnuartz UI variant
+
+The MockUI firmware uses the Schnuartz 480×800 layout and navigation while
+keeping the playground's hardware-tested controller, build manifests and
+binary settings architecture. The permanent frame is a 56 px top bar and a
+56 px bottom navigation bar; the dashboard and all feature pages live in the
+remaining viewport.
+
+Colors and fonts are resolved through the active theme. The reference palette
+is stored in
+`scenarios/MockUI/src/MockUI/basic/theming/themes/specter_ui_theme_specter.json`.
+User-facing strings are stored in
+`scenarios/MockUI/src/MockUI/basic/i18n/languages/`.
+
+To include German and an additional bundled theme in a build:
+
+```bash
+make unix ADD_LANG=de ADD_THEME=specter2
+make mockui ADD_LANG=de ADD_THEME=specter2
+```
+
+Runtime imports use the same JSON formats as the build tools. Copy language
+files named `specter_ui_<code>.json` or theme files named
+`specter_ui_theme_<name>.json` to the root of the SD card. Enable/detect the SD
+card, then use Settings → Language/Theme → Load from SD Card. Imports are
+compiled and validated before the previous binary is replaced; incompatible
+language key tables and incomplete theme triples are ignored on startup.
