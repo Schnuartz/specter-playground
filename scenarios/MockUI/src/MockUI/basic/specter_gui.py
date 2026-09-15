@@ -14,69 +14,48 @@ from .tour import GuidedTour, INTRO_TOUR_STEPS
 from .components import NavigationBar, AppScreen
 from .templates.specter_gui_base import bind_gui
 from .templates.rebuildable import RebuildableObj
-
-from ..main_screens import (
-    MainMenu,
-    LockedMenu,
-)
-from ..wallet_screens import (
-    WalletMenu,
-    ConnectWalletsMenu,
-    AddWalletMenu,
-    CreateCustomWalletMenu,
-    ViewSignersMenu,
-)
-from ..seed_screens import (
-    AddSeedMenu,
-    SeedPhraseMenu,
-    StoreSeedphraseMenu,
-    ClearSeedphraseMenu,
-    GenerateSeedMenu,
-    PassphraseMenu,
-    RelatedWalletsForSeedMenu,
-)
-from ..device_screens import (
-    SecuritySettingsMenu,
-    BackupsMenu,
-    FirmwareMenu,
-    InterfacesMenu,
-    StorageMenu,
-    SecurityFeaturesMenu,
-    LanguageMenu,
-    SettingsMenu,
-    PreferencesMenu,
-    ThemeMenu,
-)
+from .dashboard import Dashboard
+from ..screens import get_view_factory
 
 from ..stubs import DeviceState
 
-_VIEW_MAP = {
-    "locked":                   LockedMenu,
-    "main":                     MainMenu,
-    "start_intro_tour":         MainMenu,
-    "manage_wallet":            WalletMenu,
-    "view_signers":             ViewSignersMenu,
-    "manage_security_settings": SecuritySettingsMenu,
-    "manage_backups":           BackupsMenu,
-    "manage_firmware":          FirmwareMenu,
-    "connect_sw_wallet":        ConnectWalletsMenu,
-    "add_seed":                 AddSeedMenu,
-    "add_wallet":               AddWalletMenu,
-    "manage_security_features": SecurityFeaturesMenu,
-    "interfaces":               InterfacesMenu,
-    "manage_seedphrase":        SeedPhraseMenu,
-    "related_wallets_for_seed": RelatedWalletsForSeedMenu,
-    "store_seedphrase":         StoreSeedphraseMenu,
-    "clear_seedphrase":         ClearSeedphraseMenu,
-    "generate_seedphrase":      GenerateSeedMenu,
-    "set_passphrase":           PassphraseMenu,
-    "create_custom_wallet":     CreateCustomWalletMenu,
-    "manage_storage":           StorageMenu,
-    "select_language":          LanguageMenu,
-    "select_theme":             ThemeMenu,
-    "manage_preferences":       PreferencesMenu,
-    "manage_settings":          SettingsMenu,
-}
+_REFERENCE_SCREEN_IDS = (
+    "locked", "seed_management", "seed_detail", "generate_seed",
+    "set_passphrase", "show_seed_words", "enter_seed_words",
+    "wallet_info", "wallet_menu", "wallet_details", "add_wallet",
+    "rename_wallet", "connect_app", "export", "receive", "address_qr",
+    "scan", "sd_card", "signing", "settings", "security_settings",
+    "interfaces", "language_settings", "theme_settings", "import_language",
+    "import_theme", "wipe_device",
+    "xpub_export", "firmware_info", "backup", "verify_address",
+)
+
+_VIEW_MAP = {screen_id: get_view_factory(screen_id)
+             for screen_id in _REFERENCE_SCREEN_IDS}
+_VIEW_MAP.update({
+    "main": Dashboard,
+    "start_intro_tour": Dashboard,
+    # Compatibility aliases for existing scenarios and device tests.
+    "manage_wallet": get_view_factory("wallet_menu"),
+    "view_signers": get_view_factory("wallet_details"),
+    "manage_security_settings": get_view_factory("security_settings"),
+    "manage_backups": get_view_factory("backup"),
+    "manage_firmware": get_view_factory("firmware_info"),
+    "connect_sw_wallet": get_view_factory("connect_app"),
+    "add_seed": get_view_factory("seed_management"),
+    "manage_security_features": get_view_factory("security_settings"),
+    "manage_seedphrase": get_view_factory("seed_detail"),
+    "related_wallets_for_seed": get_view_factory("seed_detail"),
+    "store_seedphrase": get_view_factory("seed_detail"),
+    "clear_seedphrase": get_view_factory("seed_detail"),
+    "generate_seedphrase": get_view_factory("generate_seed"),
+    "create_custom_wallet": get_view_factory("add_wallet"),
+    "manage_storage": get_view_factory("sd_card"),
+    "select_language": get_view_factory("language_settings"),
+    "select_theme": get_view_factory("theme_settings"),
+    "manage_preferences": get_view_factory("settings"),
+    "manage_settings": get_view_factory("settings"),
+})
 
 
 class SpecterGui(RebuildableObj):
@@ -104,6 +83,13 @@ class SpecterGui(RebuildableObj):
             self.ui_state = ui_state
         else:
             self.ui_state = UIState()
+
+        # Reference-layout components historically called this object
+        # ``specter_state``. Keep one state instance and expose that name as an
+        # API alias while the clean controller continues to own UIState.
+        self.specter_state = self.device_state
+        self.ui_state.set_active_seed(self.device_state.active_seed)
+        self.ui_state.set_active_wallet(self.device_state.active_wallet)
         
         # Initialize non visible children/elements
         self.i18n = I18nManager()
@@ -156,6 +142,17 @@ class SpecterGui(RebuildableObj):
         self.theme.set_mode(mode)
         self.rebuild_all()
 
+    def show_menu(self, target_menu_id=None):
+        """Reference-layout navigation API."""
+        return self.navigate_to(target_menu_id)
+
+    def refresh_dashboard(self):
+        """Refresh dashboard data after an in-place seed/wallet change."""
+        if self.app_screen and self.app_screen.view:
+            refresh = getattr(self.app_screen.view, "refresh", None)
+            if refresh is not None:
+                refresh()
+
     def refresh_ui(self):
         """Centralized refresh method for all UI components."""
         # Animated widgets own their geometry until the transition cleanup.
@@ -181,6 +178,13 @@ class SpecterGui(RebuildableObj):
         if self.device_state.is_locked:
             target_menu_id = "locked"
 
+        # Capture selections changed by dashboard components before UIState
+        # creates the history snapshot for this navigation.
+        if target_seed == "unset":
+            self.ui_state.set_active_seed(self.device_state.active_seed)
+        if target_wallet == "unset":
+            self.ui_state.set_active_wallet(self.device_state.active_wallet)
+
         going_back = target_menu_id in [None, "back"]
 
         # Update UIState navigation history
@@ -196,6 +200,9 @@ class SpecterGui(RebuildableObj):
             self.ui_state.set_active_seed(target_seed)
         if target_wallet != "unset":
             self.ui_state.set_active_wallet(target_wallet)
+
+        self.device_state.active_seed = self.ui_state.active_seed
+        self.device_state.active_wallet = self.ui_state.active_wallet
 
         # Resolve the view class for the new menu before any rebuild or transition.
         self.ui_state.view_class = _VIEW_MAP.get(self.ui_state.current_menu_id)

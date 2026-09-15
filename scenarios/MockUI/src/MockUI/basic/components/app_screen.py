@@ -39,20 +39,10 @@ class AppScreen(SpecterGuiElement):
         self.battery = None
         self.view = None
 
-        needs_bar = (
-            (self.context == Context.SEED and self.active_seed is not None)
-            or (self.context == Context.WALLET and self.active_wallet is not None)
-        )
-
-        # Build a fresh ordered list in flex-column order.
-        # Battery will be set to FLOATING so its position doesn't affect layout.
-        slots = []
-        if needs_bar:
-            slots.append(("context_bar", ContextBar))
-        slots.append(("content", SpecterGuiElement))
-        if self.device_state.has_battery:
-            slots.append(("battery", Battery))
-        self._SUBELEMENTS = slots
+        # Schnuartz pages own their 56 px top bar, including the battery.
+        # AppScreen therefore remains a platform-neutral viewport and does not
+        # add a second context or battery row around the page.
+        self._SUBELEMENTS = [("content", SpecterGuiElement)]
 
     def post_init(self):
         # FLAG.FLOATING must be set before any layout pass so the battery is

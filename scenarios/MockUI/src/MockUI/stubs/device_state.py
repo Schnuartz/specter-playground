@@ -27,9 +27,11 @@ class DeviceState:
 
         # Seed related — ephemeral, cleared on power cycle
         self.loaded_seeds = []
+        self.active_seed = None
 
         # Wallet (descriptor) related — persisted in flash
         self.registered_wallets = []
+        self.active_wallet = None
 
         #KeyStores
         self._SmartCard_hasSeed = False
@@ -96,14 +98,25 @@ class DeviceState:
 
     # ── Seed helpers ─────────────────────────────────────────────────
     def add_seed(self, seed):
-        """Load a seed into memory. Returns the default wallet (created if needed)."""
+        """Load a seed, select it, and ensure the shared default wallet."""
         self.loaded_seeds.append(seed)
-        return self._ensure_default_wallet()
+        wallet = self._ensure_default_wallet()
+        self.set_active_seed(seed)
+        if self.active_wallet is None:
+            self.set_active_wallet(wallet)
+        return wallet
+
+    def set_active_seed(self, seed):
+        self.active_seed = seed
+        if seed is not None and not self.seed_matches_wallet(seed, self.active_wallet):
+            self.active_wallet = self._ensure_default_wallet()
 
     def remove_seed(self, seed):
         """Remove a seed from loaded seeds."""
         if seed in self.loaded_seeds:
             self.loaded_seeds.remove(seed)
+        if self.active_seed is seed:
+            self.active_seed = self.loaded_seeds[0] if self.loaded_seeds else None
 
     def wallets_for_seed(self, seed):
         """Return wallets that match this seed (including the shared Default Wallet)."""
@@ -130,14 +143,23 @@ class DeviceState:
                 and therefore already "connected".
         """
         if imported:
-            wallet.has_been_exported = True
+            wallet.mark_shared()
         self.registered_wallets.append(wallet)
+        self.set_active_wallet(wallet)
         return wallet
+
+    def set_active_wallet(self, wallet):
+        self.active_wallet = wallet
 
     def remove_wallet(self, wallet):
         """Remove a wallet descriptor."""
         if wallet in self.registered_wallets:
             self.registered_wallets.remove(wallet)
+        if self.active_wallet is wallet:
+            candidates = (self.wallets_for_seed(self.active_seed)
+                          if self.active_seed is not None
+                          else self.registered_wallets)
+            self.active_wallet = candidates[0] if candidates else None
 
     def _ensure_default_wallet(self):
         """Ensure the shared Default Wallet exists.
@@ -210,4 +232,3 @@ class DeviceState:
                 self.battery_pct = max(0, self.battery_pct - 10)
                 if self.battery_pct == 0:
                     self.is_charging = True
-
