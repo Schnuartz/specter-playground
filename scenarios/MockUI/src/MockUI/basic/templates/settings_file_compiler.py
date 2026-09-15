@@ -80,12 +80,15 @@ class SettingsFileCompiler:
     @staticmethod
     def _path_basename(path):
         """Return the final component of a path (replacement for os.path.basename)."""
-        return path.rsplit('/', 1)[-1]
+        # MicroPython paths use '/', while build tools and tests can run on
+        # Windows. Normalising here keeps the binary format code portable.
+        return path.replace('\\', '/').rsplit('/', 1)[-1]
 
     @staticmethod
     def _path_dirname(path):
         """Return the directory component of a path (replacement for os.path.dirname)."""
-        return path.rsplit('/', 1)[0] if '/' in path else '.'
+        normalised = path.replace('\\', '/')
+        return normalised.rsplit('/', 1)[0] if '/' in normalised else '.'
 
     def get_json_filename(self, settings_name):
         """Construct JSON settings filename from settings name."""

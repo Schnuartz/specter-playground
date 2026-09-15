@@ -22,6 +22,7 @@ Files that violate this rule are skipped during scanning.
 """
 
 import os
+import json
 
 from .theme_compiler import ThemeCompiler, SpecterStylePalette, ColorMode
 from ..templates.settings_file_compiler import collect_int_constants
@@ -72,6 +73,18 @@ class ThemeManager(SettingFileManager):
                     print(f"Warning: Fonts file '{fonts_file}' not found for theme '{theme_name}' (skipping theme)")
                     all_found = False
 
+                if all_found:
+                    valid, error = self.COMPILER.validate_structure(
+                        colors_file, fonts_file, styles_file
+                    )
+                    if not valid:
+                        print(
+                            "Warning: Theme '{}' is invalid (skipping): {}".format(
+                                theme_name, error
+                            )
+                        )
+                        all_found = False
+
                 if not all_found:
                     to_remove.append(theme_name)
 
@@ -98,6 +111,83 @@ class ThemeManager(SettingFileManager):
             self._preload_styles()
             return success
         return False
+
+    def load_theme_from_json(self, json_path):
+        """Compile and install a complete three-file theme transactionally."""
+        try:
+            with open(json_path, "r") as source:
+                metadata = json.load(source).get("_metadata", {})
+            theme_name = metadata.get("name", "").lower()
+            if not self.COMPILER.validate_settings_name(theme_name):
+                print("Error: invalid theme name '{}'".format(theme_name))
+                return False
+
+            staging_dir = self.FLASH_DIR + "/.theme_import"
+            try:
+                os.mkdir(staging_dir)
+            except OSError:
+                pass
+            for filename in os.listdir(staging_dir):
+                try:
+                    os.remove(staging_dir + "/" + filename)
+                except OSError:
+                    pass
+
+            paths = self.COMPILER.json_to_binary(json_path, output_dir=staging_dir)
+            if paths is None:
+                return False
+            valid, error = self.COMPILER.validate_structure(*paths)
+            if not valid:
+                print(error)
+                return False
+
+            published = []
+            backups = []
+            try:
+                for source_path in paths:
+                    filename = self.COMPILER._path_basename(source_path)
+                    final_path = self.FLASH_DIR + "/" + filename
+                    backup_path = final_path + ".bak"
+                    try:
+                        os.remove(backup_path)
+                    except OSError:
+                        pass
+                    try:
+                        os.rename(final_path, backup_path)
+                        backups.append((final_path, backup_path))
+                    except OSError:
+                        pass
+                    os.rename(source_path, final_path)
+                    published.append(final_path)
+            except Exception as error:
+                for final_path in published:
+                    try:
+                        os.remove(final_path)
+                    except OSError:
+                        pass
+                for final_path, backup_path in backups:
+                    try:
+                        os.rename(backup_path, final_path)
+                    except OSError:
+                        pass
+                print("Error installing theme: {}".format(error))
+                return False
+
+            for _final_path, backup_path in backups:
+                try:
+                    os.remove(backup_path)
+                except OSError:
+                    pass
+            try:
+                os.rmdir(staging_dir)
+            except OSError:
+                pass
+
+            self._scan_available_files()
+            return theme_name in self.available_files
+        except Exception as error:
+            print("Error loading theme JSON: {}".format(error))
+            return False
 
     def set_mode(self, mode, load_on_change=True):
         """Set the current color mode (dark/light) and persist it."""

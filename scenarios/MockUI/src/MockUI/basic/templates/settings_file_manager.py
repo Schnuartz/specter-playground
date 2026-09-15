@@ -263,19 +263,59 @@ class SettingFileManager:
 
             # Construct target path in flash directory
             output_path = f"{self.FLASH_DIR}/{self.COMPILER.get_binary_filename(setting_name)}"
+            temporary_path = output_path + ".tmp"
             
             # Convert JSON to binary - write directly to target location
-            result_path = self.COMPILER.json_to_binary(json_path, self.KEYS_CLASS, output_path)
+            result_path = self.COMPILER.json_to_binary(json_path, self.KEYS_CLASS, temporary_path)
             
             if result_path is None:
                 print("Error: Compilation failed - binary file not created.")
                 return False
+
+            valid, error = self.COMPILER.validate_binary_file(
+                temporary_path, self.KEYS_CLASS
+            )
+            if not valid:
+                print("Error: Compiled settings file is invalid: {}".format(error))
+                try:
+                    os.remove(temporary_path)
+                except OSError:
+                    pass
+                return False
+
+            # Publish only a fully validated binary. Keep the previous version
+            # until the rename succeeded, so a failed SD import is reversible.
+            backup_path = output_path + ".bak"
+            try:
+                os.remove(backup_path)
+            except OSError:
+                pass
+            had_previous = False
+            try:
+                os.rename(output_path, backup_path)
+                had_previous = True
+            except OSError:
+                pass
+            try:
+                os.rename(temporary_path, output_path)
+            except Exception:
+                if had_previous:
+                    try:
+                        os.rename(backup_path, output_path)
+                    except OSError:
+                        pass
+                raise
+            if had_previous:
+                try:
+                    os.remove(backup_path)
+                except OSError:
+                    pass
             
             # Rescan available files to include the newly added file
             self._scan_available_files()
             
             print(f"Successfully loaded settings file '{setting_name}' from {json_path}")
-            print(f"Binary file saved to: {result_path}")
+            print(f"Binary file saved to: {output_path}")
             print("Settings file is now available for selection.")
             
             return True

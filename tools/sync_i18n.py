@@ -21,6 +21,7 @@ Options:
 
 Key detection patterns recognised in source code:
     t("KEY") / t('KEY')
+    _tr("KEY") / _tr('KEY')
     i18n["KEY"] / i18n['KEY']
     i18n("KEY") / i18n('KEY')
     i18n_manager["KEY"] / i18n_manager['KEY']
@@ -87,6 +88,7 @@ class I18nSynchronizer:
         # Double- and single-quote variants are both handled.
         #
         #   t("KEY") / t('KEY')
+        #   _tr("KEY") / _tr('KEY')
         #   i18n["KEY"] / i18n['KEY']
         #   i18n("KEY") / i18n('KEY')
         #   i18n_manager["KEY"] / i18n_manager['KEY']
@@ -99,6 +101,8 @@ class I18nSynchronizer:
         self.i18n_patterns = [
             re.compile(r't\(' + _dq + r'\)'),
             re.compile(r"t\(" + _sq + r"\)"),
+            re.compile(r'_tr\(' + _dq + r'\)'),
+            re.compile(r"_tr\(" + _sq + r"\)"),
             re.compile(r'i18n(?:_manager)?\[' + _dq + r'\]'),
             re.compile(r"i18n(?:_manager)?\[" + _sq + r"\]"),
             re.compile(r'i18n(?:_manager)?\(' + _dq + r'\)'),
@@ -107,8 +111,11 @@ class I18nSynchronizer:
             # instead of calling t("KEY") directly — scan for that pattern too.
             re.compile(r'TITLE_KEY\s*=\s*' + _dq),
             re.compile(r"TITLE_KEY\s*=\s*" + _sq),
+            re.compile(r'title_key\s*=\s*' + _dq),
+            re.compile(r"title_key\s*=\s*" + _sq),
             re.compile(r'"(HELP_[A-Z0-9_]+)"'),  # for help texts, HELP_ keys are passed as argument and resolved later
             re.compile(r'"(TOUR_[A-Z0-9_]+)"'),  # for tour texts, TOUR_ keys are passed as argument and resolved later
+            re.compile(r'"(SCHN_[A-Z0-9_]+)"'),  # reference-layout key maps may resolve keys dynamically
         ]
 
         # Tracks which per-file log files have already been initialised
