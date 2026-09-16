@@ -155,5 +155,10 @@ class SeedDetailScreen(lv.obj):
         if target == "delete_seed":
             self.gui.specter_state.remove_seed(self.seed)
             self.gui.show_menu("seed_management")
+        elif target == "store_seed":
+            if self.gui.specter_state.SmartCard_detected():
+                self.gui.show_menu("smartcard")
+            else:
+                self.gui.show_menu("sd_card")
         else:
             self.gui.show_menu(target)

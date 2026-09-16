@@ -1,0 +1,5 @@
+freeze('f469-disco/usermods/udisplay_f469/display_unixport')
+freeze('f469-disco/libs/common')
+freeze('scenarios/MockUI/src')
+freeze('src')
+freeze('browser_mockui_entry')

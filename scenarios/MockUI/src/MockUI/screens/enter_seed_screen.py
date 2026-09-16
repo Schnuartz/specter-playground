@@ -10,6 +10,7 @@ from ..basic.ui_consts import (
 from ..basic.symbol_lib import BTC_ICONS
 from ..basic.keyboard_manager import Layout
 from ..stubs.seed import Seed
+from embit import bip39
 
 
 # First few BIP39 words for suggestion (mock subset)
@@ -231,7 +232,12 @@ class EnterSeedScreen(lv.obj):
         )
 
     def _finish(self):
-        seed = Seed(label=_tr("SCHN_IMPORTED_KEY"))
+        mnemonic = " ".join(self._words[:self._target_count])
+        if not bip39.mnemonic_is_valid(mnemonic):
+            self.progress_lbl.set_text("Invalid BIP39 recovery phrase")
+            self.progress_lbl.set_style_text_color(theme_color(RED_HEX), 0)
+            return
+        seed = Seed(label=_tr("SCHN_IMPORTED_KEY"), mnemonic=mnemonic)
         self.gui.specter_state.add_seed(seed)
         self.gui.ui_state.clear_history()
         self.gui.show_menu("main")

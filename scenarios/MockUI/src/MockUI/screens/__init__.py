@@ -59,6 +59,12 @@ def get_screen_class(screen_id):
     elif screen_id == "sd_card":
         from .sd_card_screen import SDCardScreen
         return SDCardScreen
+    elif screen_id in ("smartcard", "store_to_smartcard", "import_from_smartcard", "clear_from_smartcard"):
+        from .smartcard_screen import SmartcardScreen
+        return SmartcardScreen
+    elif screen_id in ("store_to_sd", "import_from_sd", "clear_from_sd"):
+        from .sd_card_screen import SDCardScreen
+        return SDCardScreen
     elif screen_id == "signing":
         from .signing_screen import SigningScreen
         return SigningScreen

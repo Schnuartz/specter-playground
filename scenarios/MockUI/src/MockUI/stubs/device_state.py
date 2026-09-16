@@ -52,6 +52,7 @@ class DeviceState:
         self._hasSmartCard = False
         self._enabledSmartCard = False
         self._detectedSmartCard = False
+        self._storage = None
 
         # misc
         self.language = "eng"
@@ -64,6 +65,7 @@ class DeviceState:
     def SmartCard_enabled(self):
         return self.hasSmartCard() and self._enabledSmartCard
     def SmartCard_detected(self):
+        self.refresh_peripherals()
         return self.SmartCard_enabled() and self._detectedSmartCard
     def SmartCard_hasSeed(self):
         return self.SmartCard_detected() and self._SmartCard_hasSeed
@@ -72,6 +74,7 @@ class DeviceState:
     def SD_enabled(self):
         return self.hasSD() and self._enabledSD
     def SD_detected(self):
+        self.refresh_peripherals()
         return self.SD_enabled() and self._detectedSD
     def SD_hasSeed(self):
         return self.SD_detected() and self._SD_hasSeed
@@ -95,6 +98,39 @@ class DeviceState:
         self._enabledSD = bool(enabled)
     def set_SmartCard_enabled(self, enabled):
         self._enabledSmartCard = bool(enabled)
+
+    @property
+    def storage(self):
+        if self._storage is None:
+            from ..storage import SeedStorage
+            self._storage = SeedStorage()
+        return self._storage
+
+    def refresh_peripherals(self):
+        """Synchronize UI flags with the physical or browser peripherals."""
+        if self._storage is None:
+            return
+        try:
+            self._detectedSD = self.storage.sd_present()
+            self._SD_hasSeed = bool(self.storage.list_sd_seeds()) if self._detectedSD else False
+        except Exception as exc:
+            print("SD status:", exc)
+            self._detectedSD = False
+            self._SD_hasSeed = False
+        try:
+            self._detectedSmartCard = self.storage.card_present()
+            if self._detectedSmartCard:
+                status = self.storage.card_status()
+                # A locked JavaCard intentionally does not reveal its secret.
+                # Keep the import entry available for any initialized card;
+                # the PIN-protected load operation determines whether it is empty.
+                self._SmartCard_hasSeed = bool(status["has_seed"] or status["pin_set"])
+            else:
+                self._SmartCard_hasSeed = False
+        except Exception as exc:
+            print("Smartcard status:", exc)
+            self._detectedSmartCard = False
+            self._SmartCard_hasSeed = False
 
     # ── Seed helpers ─────────────────────────────────────────────────
     def add_seed(self, seed):

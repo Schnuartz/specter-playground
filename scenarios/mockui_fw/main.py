@@ -47,6 +47,14 @@ specter_state._SmartCard_hasSeed = True
 
 specter_state._Flash_hasSeed = True
 
+# Initialize the shared storage adapter after /flash and the display runtime
+# exist, then derive live SD/Smartcard flags instead of relying on fixtures.
+try:
+    specter_state.storage
+    specter_state.refresh_peripherals()
+except Exception as exc:
+    print("Storage initialization:", exc)
+
 specter_state.pin = "21"
 specter_state.lock()
 
