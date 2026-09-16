@@ -1,4 +1,4 @@
-# Specter-Playground
+# Specter-Playground-Schnuartz
 
     "Cypherpunks write code. We know that someone has to write software to defend privacy, 
     and since we can't get privacy unless we all do, we're going to write it."
