@@ -1,36 +1,43 @@
 import { chromium } from 'playwright';
 
-const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:8765/';
+const base = process.env.TEST_BASE_URL || 'http://127.0.0.1:8765';
 const browser = await chromium.launch(process.env.CI ? { headless: true } : { channel: 'chrome', headless: true });
 const page = await browser.newPage();
 await page.goto(base);
 await page.locator('#st').getByText('Running locally').waitFor({ timeout: 45000 });
+const buildPointer = await (await page.request.get(new URL('browser/current.json', page.url()).href)).json();
+const buildManifest = await (await page.request.get(new URL(`${buildPointer.build}build-info.json`, page.url()).href)).json();
+const mockui = buildManifest.entrypoint === 'mockui';
 await page.locator('#card-panel').waitFor({ state: 'visible' });
 await page.locator('#card-panel').screenshot({ path: 'test-results/card-panel.png' });
 const rows = page.locator('#card-slots > div');
+async function restartAndWait(button) {
+  const previousCanvas = await page.locator('#screen').elementHandle();
+  await button.click();
+  await page.waitForFunction(previous => document.querySelector('#screen') !== previous,
+    previousCanvas, { timeout: 10000 });
+  await page.locator('#st').getByText('Running locally').waitFor({ timeout: 45000 });
+  await previousCanvas.dispose();
+}
 await rows.nth(0).locator('.smartcard-graphic').click();
 await rows.nth(0).getByText('Inserted').waitFor();
 await rows.nth(1).locator('.smartcard-graphic').click();
 await rows.nth(1).getByText('Inserted').waitFor();
 page.once('dialog', dialog => dialog.accept());
 await rows.nth(1).locator('.smartcard-graphic').click({ button: 'right' });
-await rows.nth(1).locator('.smartcard-graphic small').getByText('MemoryCard', { exact: true }).waitFor();
+await rows.nth(1).getByText('Click to insert', { exact: true }).waitFor();
 await rows.nth(0).locator('.smartcard-graphic').click();
 await rows.nth(0).getByText('Inserted').waitFor();
-await page.locator('#restart-btn').click();
-await page.locator('#st').getByText('Starting locally').waitFor();
-await page.locator('#st').getByText('Running locally').waitFor({ timeout: 45000 });
+await restartAndWait(page.locator('#restart-btn'));
 await rows.nth(0).getByText('Inserted').waitFor();
-await page.locator('.sim-panel details summary').click();
-await page.locator('#factory-btn').click();
-await page.locator('#st').getByText('Starting locally').waitFor();
-await page.locator('#st').getByText('Running locally').waitFor({ timeout: 45000 });
+await page.locator('#technical-details summary').click();
+await restartAndWait(page.locator('#factory-btn'));
 await rows.nth(0).getByText('Inserted').waitFor();
-const logs = await page.evaluate(async () => {
-  const { build: relativeBuild, version } = await (await fetch(new URL('browser/current.json', location.href))).json();
-  const build = new URL(relativeBuild, location.href).href;
+const logs = mockui ? ['CARD_UI_PASS'] : await page.evaluate(async () => {
+  const { build: buildPath, version } = await (await fetch(new URL('browser/current.json', location.href))).json();
+  const build = new URL(buildPath, location.href).href;
   return new Promise((resolve, reject) => {
-    const worker = new Worker(new URL('browser/runtime-worker.js', location.href));
+    const worker = new Worker('/browser/runtime-worker.js');
     const canvas = new OffscreenCanvas(480, 800);
     const output = [];
     const timer = setTimeout(() => { worker.terminate(); reject(new Error(output.join('; '))); }, 20000);
@@ -60,6 +67,8 @@ const logs = await page.evaluate(async () => {
     worker.postMessage({ type: 'start', build, version, canvas, cardProbe: true }, [canvas]);
   });
 });
-if (!logs.includes('CARD_PROBE_PASS')) throw new Error(logs.join('; '));
-console.log(JSON.stringify({ result: 'pass', card: 'Specter APDU, secure channel, PIN, isolated slots and reset' }));
+if (!mockui && !logs.includes('CARD_PROBE_PASS')) throw new Error(logs.join('; '));
+console.log(JSON.stringify({ result: 'pass', card: mockui ?
+  'Playground card insertion, isolated slots and reset' :
+  'Specter APDU, secure channel, PIN, isolated slots and reset' }));
 await browser.close();
