@@ -1,0 +1,31 @@
+{
+  "repository": "Schnuartz/specter-playground",
+  "source_url": "https://github.com/Schnuartz/specter-playground",
+  "commit": "c4fd57529a55a57ecec8ba49dbaec6c6724e48ec",
+  "branch": null,
+  "build_type": "Browser / WebAssembly",
+  "capabilities": {
+    "smartcard": true,
+    "smartcard_type": "MockUI virtual card"
+  },
+  "experimental": true,
+  "toolchain": "Emscripten 3.1.74",
+  "artifact_set_sha256": "e708d53149bc79274d87c01c34e68a013cc5f5b19cf8f00ce5d90b0bc30b78a6",
+  "built_at": "2026-09-16T20:20:28.266617+00:00",
+  "artifacts": {
+    "micropython.js": {
+      "bytes": 432204,
+      "sha256": "1c49cd2d817f49f5aa84bb384157fa21ec3101808fbc05887f4ce46f11a2e04b"
+    },
+    "micropython.wasm": {
+      "bytes": 6953455,
+      "sha256": "443e4f17580e83c400c9ce2af98eecd36d58749d2bec921902e6b86f1a270eeb"
+    },
+    "micropython.data": {
+      "bytes": 27014,
+      "sha256": "ee7db522e8f90d03a4dcf06fe59b6fddf3f9ea8c26357b1483825cfa47b94363"
+    }
+  },
+  "application": "MockUI",
+  "entrypoint": "mockui"
+}
