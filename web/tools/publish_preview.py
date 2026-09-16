@@ -135,12 +135,15 @@ def validate_artifact_tree(root: Path):
 def validate_bundles(browser: Path, firmware: Path, sha: str, repo: str) -> dict:
     read_source(browser, "browser", sha, repo)
     fw = read_source(firmware, "firmware", sha, repo)
-    for name in ("bin/specter-diy.bin", "bin/specter-diy.hex"):
+    hashes = fw.get("sha256")
+    if not isinstance(hashes, dict) or set(hashes) != {"bin/mockui.bin"}:
+        raise ValueError("Unexpected firmware artifact set")
+    for name, expected_hash in hashes.items():
         path = firmware / name
         if not path.is_file() or path.is_symlink():
             raise ValueError(f"Missing firmware artifact: {name}")
         from hashlib import sha256
-        if sha256(path.read_bytes()).hexdigest() != fw["sha256"].get(name):
+        if sha256(path.read_bytes()).hexdigest() != expected_hash:
             raise ValueError(f"Firmware hash mismatch: {name}")
     web = browser / "web"
     validate_artifact_tree(web)
@@ -195,14 +198,14 @@ def comment(state: dict):
         pages_owner = repo.split("/")[0].lower()
         pages_url = f"https://{pages_owner}.github.io/{repo.split('/')[1]}/pr/{number}/"
         firmware_url = f"{run_url}/artifacts/{artifact_id(state['run_id'], 'firmware-binaries')}"
-        body = (f"{MARKER}\n🧪 **Specter PR Build** · `{sha[:12]}` ✅\n\n"
+        body = (f"{MARKER}\n🧪 **Playground PR Build** · `{sha[:12]}` ✅\n\n"
                 f"🖥️ [Open browser simulator]({pages_url})\n\n"
                 f"⬇️ [Download firmware from the same commit]({firmware_url})\n\n"
                 f"🔧 [Build workflow and logs]({run_url})\n\n"
                 "⚠️ **Experimental development build.** Never use real funds or enter a real seed phrase. "
                 "Use dedicated test hardware for firmware builds.")
     else:
-        body = (f"{MARKER}\n🧪 **Specter PR Build** · `{sha[:12]}` ❌\n\n"
+        body = (f"{MARKER}\n🧪 **Playground PR Build** · `{sha[:12]}` ❌\n\n"
                 "The current PR commit has no published browser preview or matching firmware build. "
                 f"[Inspect build logs]({run_url}).\n\n"
                 "⚠️ Previous previews must not be treated as this commit.")

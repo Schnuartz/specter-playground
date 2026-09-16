@@ -42,7 +42,7 @@ class PublisherTests(unittest.TestCase):
             "kind": "browser", "commit": SHA, "repository": REPO, "sha256": {},
         }))
         hashes = {}
-        for name in ("bin/specter-diy.bin", "bin/specter-diy.hex"):
+        for name in ("bin/mockui.bin",):
             path = self.firmware / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(name.encode())
@@ -67,11 +67,11 @@ class PublisherTests(unittest.TestCase):
     def test_stale_or_modified_artifacts_are_rejected(self):
         with self.assertRaisesRegex(ValueError, "different source commit"):
             validate_bundles(self.browser, self.firmware, "0" * 40, REPO)
-        firmware = self.firmware / "bin/specter-diy.bin"
+        firmware = self.firmware / "bin/mockui.bin"
         firmware.write_bytes(b"tampered")
         with self.assertRaisesRegex(ValueError, "Firmware hash mismatch"):
             validate_bundles(self.browser, self.firmware, SHA, REPO)
-        firmware.write_bytes(b"bin/specter-diy.bin")
+        firmware.write_bytes(b"bin/mockui.bin")
         wasm = self.browser / "web" / BUILD_PATH / "micropython.wasm"
         with wasm.open("ab") as file:
             file.write(b"tampered")
