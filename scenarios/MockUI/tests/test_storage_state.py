@@ -1,11 +1,27 @@
+import sys
+from types import ModuleType
+
 import pytest
+import lvgl as lv
 
 from MockUI.stubs.device_state import DeviceState
 from MockUI.stubs.seed import Seed
 from MockUI.storage import SeedStorage, StorageError
+from MockUI.basic.utils.keyboard_layouts import _number_layout
+from MockUI.basic.utils.keyboard_manager import Layout
 
 
 MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+
+
+def test_smartcard_pin_uses_numeric_keyboard_layout(monkeypatch):
+    for name, value in (("OK", "OK"), ("BACKSPACE", "BS"), ("LEFT", "<"), ("RIGHT", ">")):
+        monkeypatch.setattr(lv.SYMBOL, name, value, raising=False)
+    assert Layout.NUMBER not in (Layout.ALNUM, Layout.FULL)
+    lower, upper, special, controls, special_controls = _number_layout()
+    assert lower == upper == special
+    assert tuple(value for value in lower if len(value) == 1 and value in "0123456789") == tuple("1234567890")
+    assert len(controls) == len(special_controls) == 14
 
 
 def test_seed_uses_real_bip39_fingerprint():
@@ -91,3 +107,33 @@ def test_smartcard_seed_roundtrip_supports_bound_and_portable_modes(tmp_path):
     with pytest.raises(StorageError, match="another device"):
         second._parse_card_seed(bound)
     assert second._parse_card_seed(portable) == MNEMONIC
+
+
+def test_javacard_transport_import_does_not_initialize_flash_backend(tmp_path, monkeypatch):
+    connection = object()
+
+    class Reader:
+        def __init__(self, **kwargs):
+            pass
+
+        def createConnection(self):
+            return connection
+
+    uscard = ModuleType("uscard")
+    uscard.Reader = Reader
+    uscard.SmartcardException = Exception
+    pyb = ModuleType("pyb")
+    pyb.Pin = type("Pin", (), {"cpu": type("CPU", (), {
+        "A2": "A2", "A4": "A4", "G10": "G10", "C2": "C2", "C5": "C5",
+    })})
+    monkeypatch.setitem(sys.modules, "uscard", uscard)
+    monkeypatch.setitem(sys.modules, "pyb", pyb)
+    for module in ("keystore", "keystore.javacard", "keystore.javacard.util"):
+        monkeypatch.delitem(sys.modules, module, raising=False)
+
+    flash = tmp_path / "flash"
+    flash.mkdir()
+    storage = SeedStorage(str(flash), str(tmp_path))
+
+    assert storage._get_connection() is connection
+    assert "keystore.flash" not in sys.modules

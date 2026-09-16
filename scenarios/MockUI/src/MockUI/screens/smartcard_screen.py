@@ -2,7 +2,7 @@
 
 import lvgl as lv
 
-from ..basic.keyboard_manager import Layout
+from ..basic.utils.keyboard_manager import Layout
 from ..basic.ui_consts import (
     theme_color, theme_font, FONT_TITLE_THEME, FONT_TEXT_THEME, FONT_SMALL_THEME,
     PAD_MD, PAD_SM, BG_BLACK_HEX, BG_CARD_HEX, WHITE_HEX, GREY_LIGHT_HEX,

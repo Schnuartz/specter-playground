@@ -69,3 +69,20 @@ def _alnum_layout():
         "ABC", "abc", " ", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, lv.SYMBOL.BACKSPACE, lv.SYMBOL.OK, "",
     )
     return map_lower, map_upper, map_special, ctrl_text, ctrl_special
+
+
+def _number_layout():
+    """PIN-only map that works consistently across native and browser LVGL."""
+    controls = (
+        1, 1, 1,
+        1, 1, 1, 2,
+        1, 1, 1, 2,
+        2, 1, 1,
+    )
+    number_map = (
+        "1", "2", "3", "\n",
+        "4", "5", "6", lv.SYMBOL.OK, "\n",
+        "7", "8", "9", lv.SYMBOL.BACKSPACE, "\n",
+        "0", lv.SYMBOL.LEFT, lv.SYMBOL.RIGHT, "",
+    )
+    return number_map, number_map, number_map, controls, controls

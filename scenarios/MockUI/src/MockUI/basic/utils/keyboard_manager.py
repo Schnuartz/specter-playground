@@ -1,10 +1,11 @@
 import lvgl as lv
-from .keyboard_layouts import _full_layout, _alnum_layout
+from .keyboard_layouts import _full_layout, _alnum_layout, _number_layout
 from ..theming import apply_style
 from .ui_utils import apply_click_feedback
 class Layout:
     ALNUM = 0
     FULL = 1
+    NUMBER = 2
 
 
 class KeyboardManager:
@@ -81,6 +82,7 @@ class KeyboardManager:
 
         self.keyboard.remove_flag(lv.obj.FLAG.HIDDEN)
         self.keyboard.set_textarea(textarea)
+        self.keyboard.set_mode(lv.keyboard.MODE.TEXT_LOWER)
         self.keyboard.move_foreground()  # must render above everything else
 
         #Do this last to mark binding is complete
@@ -136,7 +138,12 @@ class KeyboardManager:
         self.keyboard.add_event_cb(self._cancel, lv.EVENT.CANCEL, None)
 
     def _apply_layout(self, layout_id):
-        builder = _alnum_layout if layout_id == Layout.ALNUM else _full_layout
+        if layout_id == Layout.ALNUM:
+            builder = _alnum_layout
+        elif layout_id == Layout.NUMBER:
+            builder = _number_layout
+        else:
+            builder = _full_layout
         map_lower, map_upper, map_special, ctrl_text, ctrl_special = builder()
 
         self.keyboard.set_map(lv.keyboard.MODE.TEXT_LOWER, map_lower, ctrl_text)
