@@ -9,7 +9,7 @@ from resolve_build_target import resolve
 
 SHA = "a" * 40
 PLATFORM = "b" * 40
-REPO = "Schnuartz/specter-diy"
+REPO = "Schnuartz/specter-playground"
 
 
 class ResolveTests(unittest.TestCase):
@@ -21,22 +21,23 @@ class ResolveTests(unittest.TestCase):
 
     def pr(self):
         return {"state": "open", "head": {"sha": SHA, "ref": "feature",
-                "repo": {"full_name": "other-user/specter-diy"}},
+                "repo": {"full_name": "other-user/specter-playground"}},
                 "base": {"ref": "master", "repo": {"full_name": REPO}}}
 
     def test_manual_dispatch_records_source_and_platform(self):
         env = self.env()
-        env["TARGET_SHA"] = SHA[:7]
+        env["TARGET_SHA"] = f"  {SHA[:7]} "
+        env["TARGET_PR"] = " 19 "
         target = resolve(env, lambda repo, number, token: self.pr())
         self.assertEqual(target, {"event": "workflow_dispatch", "number": 19,
                                   "branch": "feature", "commit": SHA,
-                                  "repository": "other-user/specter-diy",
+                                  "repository": "other-user/specter-playground",
                                   "platform_commit": PLATFORM})
 
     def test_rejects_stale_sha_and_non_default_dispatch(self):
         pr = self.pr()
         pr["head"]["sha"] = "f" * 40
-        with self.assertRaisesRegex(ValueError, "head SHA changed"):
+        with self.assertRaisesRegex(ValueError, "currently points to"):
             resolve(self.env(), lambda repo, number, token: pr)
         env = self.env()
         env["TARGET_SHA"] = "abcdef"
@@ -48,7 +49,7 @@ class ResolveTests(unittest.TestCase):
             resolve(env, lambda repo, number, token: self.pr())
         pr = self.pr()
         pr["base"]["ref"] = "feature"
-        with self.assertRaisesRegex(ValueError, "targets another branch"):
+        with self.assertRaisesRegex(ValueError, "another repository or branch"):
             resolve(self.env(), lambda repo, number, token: pr)
 
     def test_regular_pr_and_push_keep_existing_provenance(self):

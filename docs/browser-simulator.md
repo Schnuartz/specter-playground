@@ -1,7 +1,7 @@
 # Browser simulator and PR previews
 
-The browser simulator runs the **actual** Specter DIY `src/` application under
-the fork's MicroPython Unix port, compiled with Emscripten 3.1.74. LVGL draws
+The browser simulator runs the **actual** Playground MockUI application under
+the repository's MicroPython Unix port, compiled with Emscripten 3.1.74. LVGL draws
 the display in a Web Worker. The website presents that framebuffer inside the
 physical device image and forwards pointer coordinates to LVGL. Browser shims
 replace only device transport: `/state/sd` via `platform.SDCard`, scanner data
@@ -48,10 +48,16 @@ directories are ignored by Git. `SPECTER_SOURCE_REPOSITORY=owner/repo` can
 override the origin URL when building a fork or a PR checkout.
 
 The build script applies only browser compatibility changes to the checked-out
-MicroPython/LVGL C submodules. It freezes the wallet's `src/` tree without
-changing wallet screens or logic. Browser-specific Python, JS, and source
+MicroPython/LVGL C submodules. It freezes the repository's MockUI scenario
+without changing its screens or logic. Browser-specific Python, JS, and source
 patching stay under `web/browser/`. The existing Unix simulator and hardware
 firmware build remain separate.
+
+For newer board revisions, the browser freeze uses the board's curated
+`f469-disco/manifests/common.py`, including embit from its `src/` package path.
+Older revisions without that manifest retain the original flat-library freeze.
+The build checks the resulting module list before compiling WebAssembly, so
+CPython-only embit examples and tests cannot enter a current browser build.
 
 ## CI and Pages
 
@@ -87,10 +93,12 @@ resolves the prefix against that PR's current full head SHA before checking out
 source. If the head changes to a different prefix before publication, the
 publisher ignores the stale run. Seven characters are convenient but are not
 globally unique; use a longer prefix when comparing closely spaced revisions.
+Whitespace around the inputs is ignored. If the SHA does not match the PR's
+current head, the target job reports the current prefix and stops the build.
 The CLI helper needs only the PR number and reads the SHA itself:
 
 ```sh
-python3 web/tools/trigger_pr_build.py 123 --repo Schnuartz/specter-diy
+python3 web/tools/trigger_pr_build.py 123 --repo Schnuartz/specter-playground
 ```
 
 This starts the existing `Build` workflow; it does not create another Actions
@@ -107,8 +115,8 @@ present on the repository's default branch.
 For this fork, enable **Settings → Pages → Build and deployment → GitHub
 Actions** once. Confirm Actions are enabled and allow the publisher workflow
 to write to the repository. After the first successful default-branch build,
-the stable URL is `https://schnuartz.github.io/specter-diy/`; PR previews
-are `https://schnuartz.github.io/specter-diy/pr/<number>/`. The same workflow
+the stable URL is `https://schnuartz.github.io/specter-playground/`; PR previews
+are `https://schnuartz.github.io/specter-playground/pr/<number>/`. The same workflow
 uses `GITHUB_REPOSITORY` and works in another fork after its owner enables
 Actions and Pages. PR previews are untrusted development code; the warning
 is permanent and no wallet secrets should ever be entered.
