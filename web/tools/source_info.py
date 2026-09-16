@@ -14,7 +14,12 @@ actual = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(
 if actual != expected:
     raise SystemExit(f"Checkout {actual} does not match expected {expected}")
 if kind == "firmware":
-    files = [Path("bin/specter-diy.bin"), Path("bin/specter-diy.hex")]
+    names = os.getenv(
+        "FIRMWARE_FILES", "bin/specter-diy.bin bin/specter-diy.hex"
+    ).split()
+    files = [Path(name) for name in names]
+    if not files or any(path.is_absolute() or ".." in path.parts for path in files):
+        raise SystemExit("Invalid firmware artifact path")
 elif kind == "browser":
     files = []
 else:

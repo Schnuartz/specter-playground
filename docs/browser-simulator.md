@@ -67,6 +67,12 @@ tests. It checks out the exact PR head SHA. The browser and firmware artifacts
 carry separate `source.json` records. The build workflow has **read-only**
 repository permissions and no deployment secret.
 
+The hardware artifact is `bin/mockui.bin`, a complete 2 MiB STM32F469 image
+that includes the MockUI code, themes, translations, and its FAT filesystem.
+Flash it at address `0x08000000`. The workflow verifies the merged filesystem
+before publishing the artifact and places direct firmware and simulator links
+in the GitHub Actions job summaries.
+
 A separate `Publish browser simulator` workflow runs from the trusted default
 branch after `Build` completes. It verifies that the browser manifest, its
 artifact hashes, the firmware hashes, and both provenance records identify the
