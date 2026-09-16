@@ -1,4 +1,5 @@
 # Specter-Playground-Schnuartz
+<img width="425" height="821" alt="image" src="https://github.com/user-attachments/assets/a76063b9-310f-4ff0-9037-1205a69da855" />
 
     "Cypherpunks write code. We know that someone has to write software to defend privacy, 
     and since we can't get privacy unless we all do, we're going to write it."
