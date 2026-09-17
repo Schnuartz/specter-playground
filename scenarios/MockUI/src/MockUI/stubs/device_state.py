@@ -9,6 +9,25 @@ from .wallet import Wallet
 from .seed import Seed
 
 
+def _derive_bip85_mnemonic(root, bip39, word_count, index):
+    """Small local BIP85 mnemonic derivation compatible with old embit builds."""
+    import hmac
+    hardened_index = 0x80000000
+
+    path = [
+        hardened_index + 83696968,
+        hardened_index + 39,
+        hardened_index + 0,
+        hardened_index + word_count,
+        hardened_index + index,
+    ]
+    derived = root.derive(path)
+    entropy = hmac.new(
+        b"bip-entropy-from-k", derived.secret, digestmod="sha512"
+    ).digest()
+    return bip39.mnemonic_from_bytes(entropy[:word_count * 4 // 3])
+
+
 class DeviceState:
     """Mutable application state used by the mock UI.
 
@@ -154,6 +173,84 @@ class DeviceState:
             self.loaded_seeds.remove(seed)
         if self.active_seed is seed:
             self.active_seed = self.loaded_seeds[0] if self.loaded_seeds else None
+
+    def sort_bip85_seeds(self, search_limit=10):
+        """Detect BIP85 mnemonic descendants and order parents before children.
+
+        Direct children and deeper descendants are kept as a hierarchy in the
+        list.  The UI intentionally renders every descendant with one indent;
+        ``bip85_depth`` is retained so deeper descendants can use another color.
+        """
+        try:
+            from embit import bip32, bip39
+        except ImportError:
+            return self.loaded_seeds
+
+        seeds = list(self.loaded_seeds)
+        by_mnemonic = {
+            seed.mnemonic.strip(): seed for seed in seeds if seed.mnemonic
+        }
+        for seed in seeds:
+            seed.bip85_parent_fingerprint = None
+            seed.bip85_index = None
+            seed.bip85_depth = 0
+
+        parent_of = {}
+        index_of = {}
+        word_counts = sorted(set(
+            len(seed.mnemonic.split()) for seed in seeds
+            if seed.mnemonic and len(seed.mnemonic.split()) in (12, 18, 24)
+        ))
+        for parent in seeds:
+            if not parent.mnemonic:
+                continue
+            passphrase = parent.passphrase if parent.passphrase_active and parent.passphrase else ""
+            try:
+                root = bip32.HDKey.from_seed(
+                    bip39.mnemonic_to_seed(parent.mnemonic, passphrase)
+                )
+                for word_count in word_counts:
+                    for index in range(search_limit):
+                        mnemonic = _derive_bip85_mnemonic(
+                            root, bip39, word_count, index
+                        )
+                        child = by_mnemonic.get(mnemonic)
+                        if child is not None and child is not parent and child not in parent_of:
+                            parent_of[child] = parent
+                            index_of[child] = index
+            except Exception as exc:
+                print("BIP85 hierarchy:", parent.label, exc)
+
+        children = {}
+        for child, parent in parent_of.items():
+            children.setdefault(parent, []).append(child)
+        original_position = {seed: position for position, seed in enumerate(seeds)}
+        for group in children.values():
+            group.sort(key=lambda seed: (index_of[seed], original_position[seed]))
+
+        ordered = []
+        visited = set()
+
+        def append_tree(seed, depth=0):
+            if seed in visited:
+                return
+            visited.add(seed)
+            seed.bip85_depth = depth
+            if depth:
+                parent = parent_of[seed]
+                seed.bip85_parent_fingerprint = parent.get_fingerprint()
+                seed.bip85_index = index_of[seed]
+            ordered.append(seed)
+            for child in children.get(seed, []):
+                append_tree(child, depth + 1)
+
+        for seed in seeds:
+            if seed not in parent_of:
+                append_tree(seed)
+        for seed in seeds:
+            append_tree(seed)
+        self.loaded_seeds[:] = ordered
+        return self.loaded_seeds
 
     def wallets_for_seed(self, seed):
         """Return wallets that match this seed (including the shared Default Wallet)."""

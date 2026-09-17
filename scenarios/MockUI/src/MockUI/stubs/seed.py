@@ -29,6 +29,10 @@ class Seed:
         self.passphrase_active = passphrase_active
         self.is_backed_up = is_backed_up
         self.has_been_synched = has_been_synched #used to log synching of default wallet per seed
+        # Populated by DeviceState.sort_bip85_seeds() after SD imports.
+        self.bip85_parent_fingerprint = None
+        self.bip85_index = None
+        self.bip85_depth = 0
 
     def _fingerprint_from_mnemonic(self):
         """Return the real BIP32 master fingerprint when seed words are available."""

@@ -250,3 +250,34 @@ def test_bulk_sd_import_loads_all_seeds_and_wallets_without_duplicates():
     assert len(screen.gui.specter_state.loaded_seeds) == 1
     assert len(screen.gui.specter_state.registered_wallets) == 2
     assert screen.message.text == "All seed phrases and wallets are already imported"
+
+
+def test_bip85_seed_hierarchy_is_detected_and_sorted_for_first_ten_indexes():
+    from embit import bip32, bip39
+    from MockUI.stubs.device_state import _derive_bip85_mnemonic
+
+    root = bip32.HDKey.from_seed(bip39.mnemonic_to_seed(MNEMONIC, ""))
+    child_mnemonic = _derive_bip85_mnemonic(root, bip39, 12, 7)
+    child_root = bip32.HDKey.from_seed(bip39.mnemonic_to_seed(child_mnemonic, ""))
+    grandchild_mnemonic = _derive_bip85_mnemonic(child_root, bip39, 12, 2)
+    unrelated_mnemonic = (
+        "legal winner thank year wave sausage worth useful legal winner thank yellow"
+    )
+
+    parent = Seed("Parent", mnemonic=MNEMONIC)
+    child = Seed("Child", mnemonic=child_mnemonic)
+    grandchild = Seed("Grandchild", mnemonic=grandchild_mnemonic)
+    unrelated = Seed("Unrelated", mnemonic=unrelated_mnemonic)
+    state = DeviceState()
+    state.loaded_seeds[:] = [grandchild, unrelated, child, parent]
+
+    state.sort_bip85_seeds(search_limit=10)
+
+    assert state.loaded_seeds == [unrelated, parent, child, grandchild]
+    assert parent.bip85_depth == 0
+    assert child.bip85_depth == 1
+    assert child.bip85_index == 7
+    assert child.bip85_parent_fingerprint == parent.get_fingerprint()
+    assert grandchild.bip85_depth == 2
+    assert grandchild.bip85_index == 2
+    assert grandchild.bip85_parent_fingerprint == child.get_fingerprint()
