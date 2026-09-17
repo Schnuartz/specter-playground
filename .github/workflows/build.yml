@@ -195,21 +195,13 @@ jobs:
       - name: Add direct simulator link to the workflow summary
         env:
           BROWSER_ARTIFACT_URL: ${{ steps.browser-upload.outputs.artifact-url }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          owner="${GITHUB_REPOSITORY%%/*}"
-          repository="${GITHUB_REPOSITORY#*/}"
-          owner="${owner,,}"
-          simulator_url="https://${owner}.github.io/${repository}/"
-          if test -n "$PR_NUMBER"; then
-            simulator_url="${simulator_url}pr/${PR_NUMBER}/"
-          fi
           {
             echo '## Browser simulator'
             echo
-            echo "[Open the simulator]($simulator_url)"
+            echo '[Open the working MockUI simulator](https://try.clavastack.com/?variant=schnuartz)'
             echo
             echo "[Download the tested browser build]($BROWSER_ARTIFACT_URL)"
             echo
-            echo 'The preview URL becomes available after the trusted **Publish browser simulator** workflow finishes.'
+            echo 'The public link uses the deployed ClavaStack simulator. The artifact above contains the exact build from this commit.'
           } >> "$GITHUB_STEP_SUMMARY"
