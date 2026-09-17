@@ -9,7 +9,7 @@ freeze('../scenarios/MockUI/src', opt=3)
 # this dedicated firmware image.
 freeze('../src', ('config_default.py', 'errors.py', 'helpers.py',
                   'platform.py', 'rng.py'), opt=3)
-freeze('../src', 'keystore/__init__.py', opt=3)
+freeze('../src', ('keystore/__init__.py', 'keystore/core.py'), opt=3)
 freeze('../src', 'keystore/javacard', opt=3)
 # boot.py and main.py entry points
 freeze('../scenarios/mockui_fw', opt=3)
