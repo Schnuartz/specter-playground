@@ -4,6 +4,7 @@ from hashlib import sha256
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import json
+import re
 import shutil
 import sys
 import unittest
@@ -148,7 +149,7 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual(len(posted), 1)
         self.assertIn("no published browser preview", posted[0]["body"])
 
-    def test_success_comment_uses_commit_specific_github_pages_preview(self):
+    def test_success_comment_contains_only_expected_commit_specific_urls(self):
         calls = []
         def fake_api(method, path, body=None):
             calls.append((method, path, body))
@@ -165,9 +166,13 @@ class PublisherTests(unittest.TestCase):
         posted = [body for method, _, body in calls if method == "POST"]
         self.assertEqual(len(posted), 1)
         body = posted[0]["body"]
-        self.assertIn("https://schnuartz.github.io/specter-playground/pr/17/", body)
-        self.assertIn("/artifacts/32", body)
-        self.assertNotIn("try.clavastack.com", body)
+        expected_urls = [
+            "https://schnuartz.github.io/specter-playground/pr/17/",
+            "https://github.com/example/actions/runs/1/artifacts/32",
+            "https://github.com/example/actions/runs/1",
+        ]
+        self.assertEqual(re.findall(r"\]\(([^)]+)\)", body), expected_urls)
+        self.assertEqual(re.findall(r"https?://[^)\s]+", body), expected_urls)
 
     def test_superseded_run_writes_a_skipped_state_for_later_steps(self):
         preview = self.root / "pages/pr/17"
