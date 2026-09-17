@@ -2,6 +2,8 @@
 import lvgl as lv
 from ..basic.templates.specter_gui_base import t as _tr
 import urandom
+from embit import bip39
+from rng import get_random_bytes
 from ..basic.ui_consts import (
     theme_color, theme_font, FONT_TITLE_THEME, FONT_TEXT_THEME, FONT_SMALL_THEME, FONT_CAPTION_THEME,
     PAD_MD, PAD_SM, PAD_LG, PAD_XL,
@@ -63,8 +65,10 @@ class GenerateSeedScreen(lv.obj):
         kb_bind = lambda e: gui.keyboard_manager.bind(self.name_ta, Layout.FULL)
         self.name_ta.add_event_cb(kb_bind, lv.EVENT.CLICKED, None)
 
-        # Generated fingerprint preview
-        self.generated_fp = Seed.generate_dummy_fingerprint()
+        # Generate a real BIP39 phrase once.  Its BIP32 fingerprint is what the
+        # wallet and removable-media backends use from this point onward.
+        self.generated_mnemonic = bip39.mnemonic_from_bytes(get_random_bytes(16))
+        self.generated_fp = Seed(label="preview", mnemonic=self.generated_mnemonic).fingerprint
 
         fp_card = lv.obj(self)
         fp_card.set_size(lv.pct(100), 70)
@@ -115,7 +119,7 @@ class GenerateSeedScreen(lv.obj):
         if e.get_code() != lv.EVENT.CLICKED:
             return
         name = self.name_ta.get_text()
-        seed = Seed(label=name, fingerprint=self.generated_fp)
+        seed = Seed(label=name, mnemonic=self.generated_mnemonic)
         self.gui.specter_state.add_seed(seed)
         self.gui.ui_state.clear_history()
         self.gui.show_menu("main")

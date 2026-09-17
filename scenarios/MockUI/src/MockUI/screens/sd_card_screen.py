@@ -1,188 +1,323 @@
-"""SD Card screen: file browser with type-coded entries."""
+"""Live SD-card browser backed by Specter-compatible storage."""
+
+import os
 import lvgl as lv
+
 from ..basic.templates.specter_gui_base import t as _tr
 from ..basic.ui_consts import (
-    theme_color, theme_font, FONT_TITLE_THEME, FONT_TEXT_THEME, FONT_SMALL_THEME, FONT_CAPTION_THEME,
-    PAD_MD, PAD_SM, PAD_LG,
-    BG_BLACK_HEX, BG_CARD_HEX,
-    WHITE_HEX, GREY_LIGHT_HEX, CYAN_HEX, ORANGE_HEX, GREEN_HEX, RED_HEX,
+    theme_color, theme_font, FONT_TITLE_THEME, FONT_TEXT_THEME, FONT_SMALL_THEME,
+    PAD_MD, PAD_SM, BG_BLACK_HEX, BG_CARD_HEX, WHITE_HEX, GREY_LIGHT_HEX,
+    CYAN_HEX, ORANGE_HEX, GREEN_HEX, RED_HEX,
 )
 from ..basic.symbol_lib import BTC_ICONS
+from ..stubs.seed import Seed
+from ..stubs.wallet import (
+    Wallet, ADDR_NATIVE_SEGWIT, ADDR_NESTED_SEGWIT, ADDR_LEGACY, ADDR_TAPROOT,
+)
 
 
-# Mock SD card file entries
-_MOCK_FILES = [
-    ("transaction_01.psbt", "transaction", "2.1 KB"),
-    ("wallet_backup.json", "descriptor", "0.8 KB"),
-    ("my_address.txt", "address", "0.1 KB"),
-    ("multisig_tx.psbt", "transaction", "4.3 KB"),
-    ("sparrow_wallet.json", "descriptor", "1.2 KB"),
-]
-
-_TYPE_CONFIG = {
-    "transaction": (BTC_ICONS.TRANSACTIONS, ORANGE_HEX, "SCHN_PSBT"),
-    "descriptor": (BTC_ICONS.WALLET, CYAN_HEX, "SCHN_DESCRIPTOR"),
-    "address": (BTC_ICONS.RECEIVE, GREEN_HEX, "SCHN_ADDRESS"),
-}
+def _format_size(size):
+    if size < 1024:
+        return "%d B" % size
+    if size < 1024 * 1024:
+        return "%.1f KB" % (size / 1024)
+    return "%.1f MB" % (size / (1024 * 1024))
 
 
 class SDCardScreen(lv.obj):
-    """SD Card file browser with type-coded entries."""
+    """Browse the inserted card and manage encrypted Specter seed files."""
 
     def __init__(self, gui, parent):
         super().__init__(parent)
         self.gui = gui
-
+        self.storage = gui.specter_state.storage
         self.set_size(lv.pct(100), lv.pct(100))
         self.set_style_bg_color(theme_color(BG_BLACK_HEX), 0)
         self.set_style_bg_opa(lv.OPA.COVER, 0)
         self.set_style_border_width(0, 0)
         self.set_style_radius(0, 0)
         self.set_style_pad_all(PAD_MD, 0)
-
         self.set_layout(lv.LAYOUT.FLEX)
         self.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-        self.set_style_pad_row(PAD_MD, 0)
+        self.set_style_pad_row(PAD_SM, 0)
 
-        # Title
         title = lv.label(self)
         title.set_text(_tr("SCHN_SD_CARD"))
         title.set_style_text_font(theme_font(FONT_TITLE_THEME), 0)
         title.set_style_text_color(theme_color(WHITE_HEX), 0)
 
-        # Check if SD is detected
-        if not self.gui.specter_state.SD_detected():
-            no_sd = lv.label(self)
-            no_sd.set_text(_tr("SCHN_NO_SD"))
-            no_sd.set_style_text_color(theme_color(GREY_LIGHT_HEX), 0)
-            no_sd.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
+        self.message = lv.label(self)
+        self.message.set_width(lv.pct(100))
+        self.message.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
+        self.message.set_style_text_color(theme_color(GREY_LIGHT_HEX), 0)
+
+        if not self.storage.sd_present():
+            self.message.set_text("No SD card inserted")
             return
 
-        # File list sorted by type
-        sorted_files = sorted(_MOCK_FILES, key=lambda f: list(_TYPE_CONFIG.keys()).index(f[1]))
+        active = self.gui.specter_state.active_seed
+        if active is not None and active.mnemonic:
+            self._add_action("Save active seed to SD card", GREEN_HEX, self._save_active_seed)
 
-        for filename, filetype, size in sorted_files:
-            self._add_file_row(filename, filetype, size)
-
-    def _add_file_row(self, filename, filetype, size):
-        icon, color_key, type_key = _TYPE_CONFIG.get(
-            filetype, (BTC_ICONS.FILE, WHITE_HEX, "SCHN_FILE")
+        entries = self.storage.list_sd_entries()
+        counts = {}
+        for entry in entries:
+            counts[entry["kind"]] = counts.get(entry["kind"], 0) + 1
+        self.message.set_text(
+            "%d seed phrase(s) | %d transaction(s) | %d wallet descriptor(s)" % (
+                counts.get(self.storage.SD_SEED, 0),
+                counts.get(self.storage.SD_TRANSACTION, 0),
+                counts.get(self.storage.SD_WALLET, 0),
+            )
         )
-        color = theme_color(color_key)
-        type_label = _tr(type_key)
+        importable_count = (
+            counts.get(self.storage.SD_SEED, 0)
+            + counts.get(self.storage.SD_WALLET, 0)
+        )
+        if importable_count:
+            self._add_action(
+                "Import all seed phrases and wallets",
+                CYAN_HEX,
+                self._import_all,
+            )
+        if not entries:
+            self._add_info("The SD card is empty")
 
+        categories = (
+            (self.storage.SD_SEED, "Seed phrases", BTC_ICONS.MNEMONIC, GREEN_HEX),
+            (self.storage.SD_TRANSACTION, "Bitcoin transactions", BTC_ICONS.TRANSACTIONS, ORANGE_HEX),
+            (self.storage.SD_WALLET, "Wallet descriptors", BTC_ICONS.WALLET, CYAN_HEX),
+            (self.storage.SD_OTHER, "Other files", BTC_ICONS.FILE, WHITE_HEX),
+        )
+        for kind, heading, icon, color_key in categories:
+            group = [entry for entry in entries if entry["kind"] == kind]
+            if not group:
+                continue
+            self._add_category(heading, len(group), icon, color_key)
+            for entry in group:
+                self._add_file_row(entry, icon, color_key)
+
+    def _add_info(self, text):
+        label = lv.label(self)
+        label.set_text(text)
+        label.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
+        label.set_style_text_color(theme_color(GREY_LIGHT_HEX), 0)
+
+    def _add_action(self, text, color_key, callback):
+        button = lv.button(self)
+        button.set_size(lv.pct(100), 58)
+        button.set_style_bg_color(theme_color(color_key), 0)
+        button.set_style_radius(10, 0)
+        button.set_style_border_width(0, 0)
+        label = lv.label(button)
+        label.set_text(text)
+        label.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
+        label.set_style_text_color(theme_color(WHITE_HEX), 0)
+        label.center()
+        button.add_event_cb(callback, lv.EVENT.CLICKED, None)
+
+    def _add_category(self, text, count, icon, color_key):
+        heading = lv.obj(self)
+        heading.set_size(lv.pct(100), 38)
+        heading.set_style_bg_opa(lv.OPA.TRANSP, 0)
+        heading.set_style_border_width(0, 0)
+        heading.set_style_pad_all(0, 0)
+        heading.set_layout(lv.LAYOUT.FLEX)
+        heading.set_flex_flow(lv.FLEX_FLOW.ROW)
+        heading.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        heading.set_style_pad_column(PAD_SM, 0)
+        image = lv.image(heading)
+        icon(theme_color(color_key)).add_to_parent(image, zoom=150)
+        label = lv.label(heading)
+        label.set_text("%s (%d)" % (text, count))
+        label.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
+        label.set_style_text_color(theme_color(color_key), 0)
+
+    def _add_file_row(self, entry, icon, color_key):
         row = lv.button(self)
-        row.set_size(lv.pct(100), 84)
+        row.set_size(lv.pct(100), 76)
         row.set_style_bg_color(theme_color(BG_CARD_HEX), 0)
         row.set_style_bg_opa(lv.OPA.COVER, 0)
         row.set_style_radius(10, 0)
-        row.set_style_border_width(0, 0)
-        row.set_style_shadow_width(0, 0)
-
+        row.set_style_border_width(4, 0)
+        row.set_style_border_side(lv.BORDER_SIDE.LEFT, 0)
+        row.set_style_border_color(theme_color(color_key), 0)
         row.set_layout(lv.LAYOUT.FLEX)
         row.set_flex_flow(lv.FLEX_FLOW.ROW)
         row.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         row.set_style_pad_column(PAD_MD, 0)
-        row.set_style_pad_left(PAD_MD, 0)
 
-        # Type icon (color-coded)
-        ico = lv.image(row)
-        icon(color).add_to_parent(ico, zoom=210)
+        image = lv.image(row)
+        icon(theme_color(color_key)).add_to_parent(image, zoom=190)
+        info = lv.obj(row)
+        info.set_size(lv.SIZE_CONTENT, lv.SIZE_CONTENT)
+        info.set_flex_grow(1)
+        info.set_style_bg_opa(lv.OPA.TRANSP, 0)
+        info.set_style_border_width(0, 0)
+        info.set_style_pad_all(0, 0)
+        info.remove_flag(lv.obj.FLAG.CLICKABLE)
+        name = lv.label(info)
+        name.set_text(entry["label"])
+        name.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
+        name.set_style_text_color(theme_color(WHITE_HEX), 0)
+        detail = lv.label(info)
+        detail.set_text("%s | %s" % (entry["detail"], _format_size(entry["size"])))
+        detail.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
+        detail.set_style_text_color(theme_color(color_key), 0)
+        detail.align_to(name, lv.ALIGN.OUT_BOTTOM_LEFT, 0, 3)
+        row.add_event_cb(lambda event, item=entry: self._open_file(item), lv.EVENT.CLICKED, None)
+        row.add_event_cb(lambda event, name=entry["name"]: self._delete_file(name), lv.EVENT.LONG_PRESSED, None)
 
-        # File info column
-        info_col = lv.obj(row)
-        info_col.set_size(lv.SIZE_CONTENT, lv.SIZE_CONTENT)
-        info_col.set_style_bg_opa(lv.OPA.TRANSP, 0)
-        info_col.set_style_border_width(0, 0)
-        info_col.set_style_pad_all(0, 0)
-        info_col.set_flex_grow(1)
+    def _show_result(self, text, error=False):
+        self.message.set_text(text)
+        self.message.set_style_text_color(theme_color(RED_HEX if error else GREEN_HEX), 0)
 
-        name_lbl = lv.label(info_col)
-        name_lbl.set_text(filename)
-        name_lbl.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
-        name_lbl.set_style_text_color(theme_color(WHITE_HEX), 0)
-        name_lbl.align(lv.ALIGN.TOP_LEFT, 0, 0)
+    def _save_active_seed(self, event):
+        seed = self.gui.specter_state.active_seed
+        try:
+            filename = self.storage.save_sd_seed(seed.mnemonic, seed.label)
+            self.gui.specter_state._SD_hasSeed = True
+            self._show_result("Saved as %s" % filename)
+            self.gui.show_menu("sd_card")
+        except Exception as exc:
+            self._show_result(str(exc), True)
 
-        detail_lbl = lv.label(info_col)
-        detail_lbl.set_text(type_label + " | " + size)
-        detail_lbl.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
-        detail_lbl.set_style_text_color(color, 0)
-        detail_lbl.align_to(name_lbl, lv.ALIGN.OUT_BOTTOM_LEFT, 0, 4)
-
-        # Click to process file
-        row.add_event_cb(lambda e, fn=filename, ft=filetype: self._process_file(fn, ft), lv.EVENT.CLICKED, None)
-        # Long press to delete
-        row.add_event_cb(lambda e, fn=filename: self._long_press(fn), lv.EVENT.LONG_PRESSED, None)
-
-    def _process_file(self, filename, filetype):
-        if filetype == "transaction":
+    def _open_file(self, entry):
+        filename = entry["name"]
+        if entry["kind"] == self.storage.SD_SEED:
+            try:
+                self._import_seed(filename, entry["label"])
+                self.gui.show_menu("seed_detail")
+            except Exception as exc:
+                self._show_result(str(exc), True)
+        elif entry["kind"] == self.storage.SD_TRANSACTION:
+            self.gui.specter_state.pending_psbt = filename
             self.gui.show_menu("signing")
-        elif filetype == "descriptor":
-            # Add wallet flow
-            self.gui.show_menu("add_wallet")
-        elif filetype == "address":
-            # Verify address
-            self.gui.show_menu("verify_address")
+        elif entry["kind"] == self.storage.SD_WALLET:
+            try:
+                self._import_wallet(filename, entry["label"])
+            except Exception as exc:
+                self._show_result(str(exc), True)
 
-    def _long_press(self, filename):
-        """Show delete option via modal overlay."""
-        from ..basic.modal_overlay import ModalOverlay
+    def _import_seed(self, filename, label):
+        mnemonic = self.storage.load_sd_mnemonic(filename)
+        state = self.gui.specter_state
+        seed = next((item for item in state.loaded_seeds
+                     if item.mnemonic == mnemonic), None)
+        imported = seed is None
+        if imported:
+            seed = Seed(label=label, mnemonic=mnemonic)
+            state.add_seed(seed)
+        else:
+            state.set_active_seed(seed)
+        return seed, imported
 
-        self._modal = ModalOverlay(bg_opa=200)
-        overlay = self._modal.overlay
+    def _import_all(self, event):
+        imported_seeds = 0
+        imported_wallets = 0
+        failures = 0
+        for entry in self.storage.list_sd_entries():
+            try:
+                if entry["kind"] == self.storage.SD_SEED:
+                    _, imported = self._import_seed(entry["name"], entry["label"])
+                    imported_seeds += 1 if imported else 0
+                elif entry["kind"] == self.storage.SD_WALLET:
+                    _, imported = self._import_wallet(
+                        entry["name"], entry["label"], navigate=False
+                    )
+                    imported_wallets += 1 if imported else 0
+            except Exception as exc:
+                failures += 1
+                print("SD bulk import:", entry["name"], exc)
 
-        dialog = lv.obj(overlay)
-        dialog.set_size(350, 180)
-        dialog.set_style_bg_color(theme_color(BG_CARD_HEX), 0)
-        dialog.set_style_bg_opa(lv.OPA.COVER, 0)
-        dialog.set_style_radius(12, 0)
-        dialog.set_style_border_width(0, 0)
-        dialog.set_style_pad_all(PAD_LG, 0)
-        dialog.center()
+        result = "Imported %d seed phrase(s) and %d wallet(s)" % (
+            imported_seeds, imported_wallets
+        )
+        if failures:
+            result += " | %d failed" % failures
+        elif imported_seeds == 0 and imported_wallets == 0:
+            result = "All seed phrases and wallets are already imported"
+        self._show_result(result, failures > 0)
 
-        dialog.set_layout(lv.LAYOUT.FLEX)
-        dialog.set_flex_flow(lv.FLEX_FLOW.COLUMN)
-        dialog.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
-        dialog.set_style_pad_row(PAD_MD, 0)
+    @staticmethod
+    def _descriptor_fingerprints(descriptor):
+        fingerprints = []
+        position = 0
+        hex_chars = "0123456789abcdefABCDEF"
+        while True:
+            start = descriptor.find("[", position)
+            if start < 0:
+                break
+            end = descriptor.find("]", start + 1)
+            if end < 0:
+                break
+            origin = descriptor[start + 1:end]
+            fingerprint = origin.split("/", 1)[0]
+            if len(fingerprint) == 8 and all(char in hex_chars for char in fingerprint):
+                fingerprint = fingerprint.lower()
+                if fingerprint not in fingerprints:
+                    fingerprints.append(fingerprint)
+            position = end + 1
+        return fingerprints
 
-        title = lv.label(dialog)
-        title.set_text(_tr("SCHN_DELETE_PREFIX") + filename + "?")
-        title.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
-        title.set_style_text_color(theme_color(WHITE_HEX), 0)
+    @staticmethod
+    def _descriptor_threshold(descriptor):
+        for marker in ("sortedmulti(", "multi("):
+            start = descriptor.find(marker)
+            if start >= 0:
+                value = descriptor[start + len(marker):].split(",", 1)[0]
+                try:
+                    return int(value)
+                except ValueError:
+                    return None
+        return None
 
-        del_btn = lv.button(dialog)
-        del_btn.set_size(lv.pct(100), 52)
-        del_btn.set_style_bg_color(theme_color(RED_HEX), 0)
-        del_btn.set_style_radius(8, 0)
-        del_btn.set_style_border_width(0, 0)
-        del_btn.set_style_shadow_width(0, 0)
-        del_lbl = lv.label(del_btn)
-        del_lbl.set_text(_tr("SCHN_DELETE"))
-        del_lbl.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
-        del_lbl.set_style_text_color(theme_color(WHITE_HEX), 0)
-        del_lbl.center()
-        del_btn.add_event_cb(lambda e: self._confirm_delete(filename), lv.EVENT.CLICKED, None)
+    def _import_wallet(self, filename, fallback_label, navigate=True):
+        payload = self.storage.load_sd_wallet(filename)
+        descriptor = payload["descriptor"].strip()
+        state = self.gui.specter_state
+        wallet = next((item for item in state.registered_wallets
+                       if item.descriptor == descriptor), None)
+        imported = wallet is None
+        if wallet is None:
+            fingerprints = self._descriptor_fingerprints(descriptor)
+            threshold = self._descriptor_threshold(descriptor)
+            is_multisig = threshold is not None
+            if is_multisig and len(fingerprints) < threshold:
+                raise ValueError("Wallet descriptor does not contain enough signer fingerprints")
+            lower = descriptor.lower()
+            if lower.startswith("tr("):
+                address_type = ADDR_TAPROOT
+            elif lower.startswith("pkh("):
+                address_type = ADDR_LEGACY
+            elif lower.startswith("sh(wpkh("):
+                address_type = ADDR_NESTED_SEGWIT
+            else:
+                address_type = ADDR_NATIVE_SEGWIT
+            testnet_markers = ("tpub", "upub", "vpub", "tb1", "[1/")
+            network = "testnet" if any(marker in lower for marker in testnet_markers) else "mainnet"
+            wallet = Wallet(
+                label=payload.get("label") or fallback_label,
+                descriptor=descriptor,
+                isMultiSig=is_multisig,
+                net=network,
+                required_fingerprints=fingerprints,
+                threshold=threshold,
+                address_type=address_type,
+            )
+            state.register_wallet(wallet, imported=True, source="SD card")
+        else:
+            state.set_active_wallet(wallet)
+        if navigate:
+            self.gui.show_menu("wallet_info")
+        return wallet, imported
 
-        cancel_btn = lv.button(dialog)
-        cancel_btn.set_size(lv.pct(100), 48)
-        cancel_btn.set_style_bg_color(theme_color(BG_ELEVATED_HEX), 0)
-        cancel_btn.set_style_radius(8, 0)
-        cancel_btn.set_style_border_width(0, 0)
-        cancel_btn.set_style_shadow_width(0, 0)
-        cancel_lbl = lv.label(cancel_btn)
-        cancel_lbl.set_text(_tr("SCHN_CANCEL"))
-        cancel_lbl.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
-        cancel_lbl.set_style_text_color(theme_color(GREY_LIGHT_HEX), 0)
-        cancel_lbl.center()
-        cancel_btn.add_event_cb(lambda e: self._close_modal(), lv.EVENT.CLICKED, None)
-
-    def _confirm_delete(self, filename):
-        self._close_modal()
-        # In real implementation, delete from SD card
-        # For mock, just refresh the screen
-        self.gui.show_menu("sd_card")
-
-    def _close_modal(self):
-        if hasattr(self, '_modal') and self._modal:
-            self._modal.close()
-            self._modal = None
+    def _delete_file(self, filename):
+        try:
+            if filename.lower().startswith(self.storage.sd_prefix.lower()):
+                self.storage.delete_sd_seed(filename)
+            else:
+                os.remove(self.storage.sd_root + "/" + filename)
+            self.gui.show_menu("sd_card")
+        except Exception as exc:
+            self._show_result(str(exc), True)

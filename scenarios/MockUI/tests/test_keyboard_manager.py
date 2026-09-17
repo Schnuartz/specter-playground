@@ -61,6 +61,7 @@ class MockKeyboard:
         self._flags     = {_FLAG.HIDDEN}
         self._event_cbs = []
         self._textarea  = None
+        self._mode      = None
 
     def add_flag(self, flag):              self._flags.add(flag)
     def remove_flag(self, flag):           self._flags.discard(flag)
@@ -69,6 +70,7 @@ class MockKeyboard:
     def set_style_text_font(self, *a):     pass
     def set_textarea(self, ta):            self._textarea = ta
     def set_map(self, *a):                 pass
+    def set_mode(self, mode):              self._mode = mode
     def move_foreground(self):             pass
 
 

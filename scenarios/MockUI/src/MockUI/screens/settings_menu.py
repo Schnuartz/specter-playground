@@ -76,6 +76,10 @@ class SettingsMenu(lv.obj):
         self._add_toggle_row(_tr("SCHN_POWER"), state.battery_pct is not None, self._power_cb)
         self._add_toggle_row(_tr("SCHN_LOCK_DEVICE"), state.is_locked, self._lock_cb)
         self._add_nav_item(_tr("SCHN_MANAGE_INTERFACES"), BTC_ICONS.USB, "interfaces")
+        if state.hasSD():
+            self._add_nav_item(_tr("SCHN_SD_CARD"), BTC_ICONS.SD_CARD, "sd_card")
+        if state.hasSmartCard():
+            self._add_nav_item("Smartcard", BTC_ICONS.SMARTCARD, "smartcard")
         self._add_nav_item(_tr("SCHN_LANGUAGE"), BTC_ICONS.GLOBE, "language_settings")
         self._add_nav_item(_tr("SCHN_THEME"), BTC_ICONS.BRUSH, "theme_settings")
 

@@ -4,6 +4,27 @@ import os
 import random
 from types import ModuleType
 
+if "ucryptolib" not in sys.modules:
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+
+    class _AESCipher:
+        def __init__(self, key, mode, iv):
+            if mode != 2:
+                raise ValueError("The test shim only supports AES-CBC")
+            self._cipher = Cipher(algorithms.AES(key), modes.CBC(iv))
+
+        def encrypt(self, data):
+            encryptor = self._cipher.encryptor()
+            return encryptor.update(data) + encryptor.finalize()
+
+        def decrypt(self, data):
+            decryptor = self._cipher.decryptor()
+            return decryptor.update(data) + decryptor.finalize()
+
+    ucryptolib_mock = ModuleType("ucryptolib")
+    ucryptolib_mock.aes = _AESCipher
+    sys.modules["ucryptolib"] = ucryptolib_mock
+
 # Mock micropython module BEFORE pytest discovers MockUI package
 # Pattern from specter-diy: libs/common/embit/misc.py
 if "micropython" not in sys.modules:
