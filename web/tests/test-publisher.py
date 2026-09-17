@@ -148,6 +148,27 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual(len(posted), 1)
         self.assertIn("no published browser preview", posted[0]["body"])
 
+    def test_success_comment_uses_commit_specific_github_pages_preview(self):
+        calls = []
+        def fake_api(method, path, body=None):
+            calls.append((method, path, body))
+            if path.startswith("/actions/runs/1/artifacts"):
+                return {"artifacts": [
+                    {"id": 32, "name": "firmware-binaries", "expired": False},
+                ]}
+            return [] if method == "GET" else None
+        state = {"number": 17, "sha": SHA, "run_url": "https://github.com/example/actions/runs/1",
+                 "run_id": 1, "published": True}
+        with patch.dict("os.environ", {"GITHUB_REPOSITORY": "Schnuartz/specter-playground"}), \
+                patch.object(publish_preview, "api", side_effect=fake_api):
+            publish_preview.comment(state)
+        posted = [body for method, _, body in calls if method == "POST"]
+        self.assertEqual(len(posted), 1)
+        body = posted[0]["body"]
+        self.assertIn("https://schnuartz.github.io/specter-playground/pr/17/", body)
+        self.assertIn("/artifacts/32", body)
+        self.assertNotIn("try.clavastack.com", body)
+
     def test_superseded_run_writes_a_skipped_state_for_later_steps(self):
         preview = self.root / "pages/pr/17"
         preview.mkdir(parents=True)
