@@ -136,6 +136,9 @@ class SeedDropdown(lv.obj):
                 btn.set_style_pad_column(PAD_SM, 0)
                 derived = seed.bip85_depth > 0
                 btn.set_style_pad_left(PAD_MD + (PAD_LG if derived else 0), 0)
+                if derived:
+                    btn.set_width(lv.pct(100))
+                    btn.set_style_margin_left(PAD_LG, 0)
 
                 ico = lv.image(btn)
                 if derived:
@@ -174,7 +177,7 @@ class SeedDropdown(lv.obj):
         divider.set_style_bg_opa(lv.OPA.COVER, 0)
         divider.set_style_border_width(0, 0)
 
-        # "Add New Wallet" button
+        # "Add New Seed Phrase" button
         add_btn = lv.button(dropdown)
         add_btn.set_size(lv.pct(100), ROW_HEIGHT)
         add_btn.set_style_bg_color(theme_color(BG_CARD_HEX), 0)
@@ -193,11 +196,11 @@ class SeedDropdown(lv.obj):
         BTC_ICONS.PLUS(theme_color(CYAN_HEX)).add_to_parent(add_ico, zoom=ROW_ICON_ZOOM)
 
         add_lbl = lv.label(add_btn)
-        add_lbl.set_text(_tr("SCHN_ADD_NEW_WALLET"))
+        add_lbl.set_text("Add New Seed Phrase")
         add_lbl.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
         add_lbl.set_style_text_color(theme_color(CYAN_HEX), 0)
 
-        add_btn.add_event_cb(self._add_wallet, lv.EVENT.CLICKED, None)
+        add_btn.add_event_cb(self._add_seed, lv.EVENT.CLICKED, None)
 
         # Tap outside to close
         overlay.add_flag(lv.obj.FLAG.CLICKABLE)
@@ -226,9 +229,9 @@ class SeedDropdown(lv.obj):
         if self.on_change:
             self.on_change()
 
-    def _add_wallet(self, e):
+    def _add_seed(self, e):
         self._close_dropdown()
-        self.gui.show_menu("add_wallet")
+        self.gui.show_menu("seed_menu")
 
     def _close_dropdown(self):
         self._dropdown_open = False

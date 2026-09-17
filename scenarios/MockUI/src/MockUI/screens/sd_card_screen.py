@@ -57,7 +57,10 @@ class SDCardScreen(lv.obj):
 
         active = self.gui.specter_state.active_seed
         if active is not None and active.mnemonic:
-            self._add_action("Save active seed to SD card", GREEN_HEX, self._save_active_seed)
+            self._add_action(
+                "Save active seed to SD card", GREEN_HEX,
+                self._save_active_seed, BTC_ICONS.SD_CARD,
+            )
 
         entries = self.storage.list_sd_entries()
         counts = {}
@@ -79,6 +82,7 @@ class SDCardScreen(lv.obj):
                 "Import all seed phrases and wallets",
                 CYAN_HEX,
                 self._import_all,
+                BTC_ICONS.RECEIVE,
             )
         if not entries:
             self._add_info("The SD card is empty")
@@ -103,17 +107,25 @@ class SDCardScreen(lv.obj):
         label.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
         label.set_style_text_color(theme_color(GREY_LIGHT_HEX), 0)
 
-    def _add_action(self, text, color_key, callback):
+    def _add_action(self, text, color_key, callback, icon):
         button = lv.button(self)
-        button.set_size(lv.pct(100), 58)
-        button.set_style_bg_color(theme_color(color_key), 0)
+        button.set_size(lv.pct(100), 64)
+        button.set_style_min_height(64, 0)
+        button.set_style_bg_color(theme_color(BG_CARD_HEX), 0)
+        button.set_style_bg_opa(lv.OPA.COVER, 0)
         button.set_style_radius(10, 0)
-        button.set_style_border_width(0, 0)
+        button.set_style_border_width(2, 0)
+        button.set_style_border_color(theme_color(color_key), 0)
+        button.set_layout(lv.LAYOUT.FLEX)
+        button.set_flex_flow(lv.FLEX_FLOW.ROW)
+        button.set_flex_align(lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        button.set_style_pad_column(PAD_SM, 0)
+        image = lv.image(button)
+        icon(theme_color(color_key)).add_to_parent(image, zoom=180)
         label = lv.label(button)
         label.set_text(text)
         label.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
-        label.set_style_text_color(theme_color(WHITE_HEX), 0)
-        label.center()
+        label.set_style_text_color(theme_color(color_key), 0)
         button.add_event_cb(callback, lv.EVENT.CLICKED, None)
 
     def _add_category(self, text, count, icon, color_key):
@@ -134,6 +146,12 @@ class SDCardScreen(lv.obj):
         label.set_style_text_color(theme_color(color_key), 0)
 
     def _add_file_row(self, entry, icon, color_key):
+        row_color = theme_color(color_key)
+        if entry["kind"] == self.storage.SD_SEED:
+            imported = self._seed_is_imported(entry)
+            row_color = lv.color_hex(0x66BB6A if imported else 0x2E7D32)
+            entry = dict(entry)
+            entry["detail"] += " | " + ("Imported" if imported else "Not imported")
         row = lv.button(self)
         row.set_size(lv.pct(100), 76)
         row.set_style_bg_color(theme_color(BG_CARD_HEX), 0)
@@ -141,14 +159,14 @@ class SDCardScreen(lv.obj):
         row.set_style_radius(10, 0)
         row.set_style_border_width(4, 0)
         row.set_style_border_side(lv.BORDER_SIDE.LEFT, 0)
-        row.set_style_border_color(theme_color(color_key), 0)
+        row.set_style_border_color(row_color, 0)
         row.set_layout(lv.LAYOUT.FLEX)
         row.set_flex_flow(lv.FLEX_FLOW.ROW)
         row.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
         row.set_style_pad_column(PAD_MD, 0)
 
         image = lv.image(row)
-        icon(theme_color(color_key)).add_to_parent(image, zoom=190)
+        icon(row_color).add_to_parent(image, zoom=190)
         info = lv.obj(row)
         info.set_size(lv.SIZE_CONTENT, lv.SIZE_CONTENT)
         info.set_flex_grow(1)
@@ -163,10 +181,18 @@ class SDCardScreen(lv.obj):
         detail = lv.label(info)
         detail.set_text("%s | %s" % (entry["detail"], _format_size(entry["size"])))
         detail.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
-        detail.set_style_text_color(theme_color(color_key), 0)
+        detail.set_style_text_color(row_color, 0)
         detail.align_to(name, lv.ALIGN.OUT_BOTTOM_LEFT, 0, 3)
         row.add_event_cb(lambda event, item=entry: self._open_file(item), lv.EVENT.CLICKED, None)
         row.add_event_cb(lambda event, name=entry["name"]: self._delete_file(name), lv.EVENT.LONG_PRESSED, None)
+
+    def _seed_is_imported(self, entry):
+        try:
+            mnemonic = self.storage.load_sd_mnemonic(entry["name"])
+        except Exception:
+            return False
+        return any(seed.mnemonic == mnemonic
+                   for seed in self.gui.specter_state.loaded_seeds)
 
     def _show_result(self, text, error=False):
         self.message.set_text(text)
