@@ -1,7 +1,7 @@
 {
   "repository": "Schnuartz/specter-playground",
   "source_url": "https://github.com/Schnuartz/specter-playground",
-  "commit": "e02e4329edd5113dd7d8e9095ffd050536aad434",
+  "commit": "12b68d2d82045f69f6fb07e0adc17cbc23a2bdc1",
   "branch": null,
   "build_type": "Browser / WebAssembly",
   "capabilities": {
@@ -11,7 +11,7 @@
   "experimental": true,
   "toolchain": "Emscripten 3.1.74",
   "artifact_set_sha256": "71a501a6e064e78d5d9428af8d4c870776db3d56fd33f502f4a8c41d8db96c48",
-  "built_at": "2026-09-17T12:38:34.551938+00:00",
+  "built_at": "2026-09-17T13:13:44.996208+00:00",
   "artifacts": {
     "micropython.js": {
       "bytes": 432204,
