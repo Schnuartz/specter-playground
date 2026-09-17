@@ -44,8 +44,18 @@ if (!(await readFile(await download.path())).equals(Buffer.from([0, 1, 2, 255]))
   throw new Error('Virtual SD export bytes differ from imported bytes');
 }
 
+await page.evaluate(() => {
+  window.__restartStatuses = [];
+  const status = document.querySelector('#st');
+  new MutationObserver(records => {
+    for (const record of records) {
+      for (const node of record.addedNodes) window.__restartStatuses.push(node.textContent);
+    }
+  }).observe(status, { childList: true });
+});
 await page.locator('#restart-btn').click();
-await page.locator('#st').getByText('Starting locally').waitFor({ timeout: 10000 });
+await page.waitForFunction(() => window.__restartStatuses.includes('Starting locally'), null,
+  { timeout: 10000 });
 await page.locator('#st').getByText('Running locally').waitFor({ timeout: 45000 });
 await page.locator('#sd-state').getByText('Inserted').waitFor();
 await page.locator('#sd-files').getByText('probe.bin', { exact: false }).waitFor();

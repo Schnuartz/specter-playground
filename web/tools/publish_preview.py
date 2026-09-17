@@ -128,7 +128,8 @@ def validate_artifact_tree(root: Path):
         relative = path.relative_to(root).as_posix()
         if path.is_file() and not (relative == "index.html" or
             relative.startswith(("assets/", "browser/runtime/", "builds/")) or
-            relative in {"browser/site.js", "browser/runtime-worker.js", "browser/current.json"}):
+            relative in {"browser/site.js", "browser/demo-data.js",
+                         "browser/runtime-worker.js", "browser/current.json"}):
             raise ValueError(f"Unexpected browser artifact: {relative}")
 
 
@@ -152,7 +153,7 @@ def validate_bundles(browser: Path, firmware: Path, sha: str, repo: str) -> dict
         raise ValueError("Development build warning missing from manifest")
     if "NEVER ENTER A REAL SEED PHRASE" not in (web / "index.html").read_text():
         raise ValueError("Development build warning missing from page")
-    for name in ("browser/site.js", "browser/runtime-worker.js"):
+    for name in ("browser/site.js", "browser/demo-data.js", "browser/runtime-worker.js"):
         if not (web / name).is_file():
             raise ValueError(f"Missing browser shell: {name}")
     return manifest

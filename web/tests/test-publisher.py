@@ -31,7 +31,8 @@ class PublisherTests(unittest.TestCase):
         self.firmware = self.root / "firmware"
         web = self.browser / "web"
         for name in ("index.html", "assets", "browser/runtime", "browser/site.js",
-                     "browser/runtime-worker.js", "browser/current.json", BUILD_PATH.rstrip("/")):
+                     "browser/demo-data.js", "browser/runtime-worker.js",
+                     "browser/current.json", BUILD_PATH.rstrip("/")):
             source, target = ROOT / name, web / name
             target.parent.mkdir(parents=True, exist_ok=True)
             if source.is_dir():
@@ -59,6 +60,7 @@ class PublisherTests(unittest.TestCase):
         self.assertTrue((pages / "pr/425/.nojekyll").exists() is False)
         self.assertTrue((pages / ".nojekyll").is_file())
         self.assertIn(f"site.js?v={SHA[:12]}", (pages / "pr/425/index.html").read_text())
+        self.assertTrue((pages / "pr/425/browser/demo-data.js").is_file())
         # A new PR commit replaces only that preview, preserving the stable site.
         (pages / "index.html").write_text("stable")
         publish_files(self.browser / "web", pages, 425, SHA)
@@ -76,6 +78,11 @@ class PublisherTests(unittest.TestCase):
         with wasm.open("ab") as file:
             file.write(b"tampered")
         with self.assertRaisesRegex(ValueError, "Missing or invalid|Hash mismatch"):
+            validate_bundles(self.browser, self.firmware, SHA, REPO)
+
+    def test_demo_data_module_is_required(self):
+        (self.browser / "web/browser/demo-data.js").unlink()
+        with self.assertRaisesRegex(ValueError, "Missing browser shell: browser/demo-data.js"):
             validate_bundles(self.browser, self.firmware, SHA, REPO)
 
     def test_stale_pr_head_cannot_be_published(self):
