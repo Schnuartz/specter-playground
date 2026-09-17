@@ -70,6 +70,16 @@ class SDCardScreen(lv.obj):
                 counts.get(self.storage.SD_WALLET, 0),
             )
         )
+        importable_count = (
+            counts.get(self.storage.SD_SEED, 0)
+            + counts.get(self.storage.SD_WALLET, 0)
+        )
+        if importable_count:
+            self._add_action(
+                "Import all seed phrases and wallets",
+                CYAN_HEX,
+                self._import_all,
+            )
         if not entries:
             self._add_info("The SD card is empty")
 
@@ -176,14 +186,7 @@ class SDCardScreen(lv.obj):
         filename = entry["name"]
         if entry["kind"] == self.storage.SD_SEED:
             try:
-                mnemonic = self.storage.load_sd_mnemonic(filename)
-                seed = next((item for item in self.gui.specter_state.loaded_seeds
-                             if item.mnemonic == mnemonic), None)
-                if seed is None:
-                    seed = Seed(label=entry["label"], mnemonic=mnemonic)
-                    self.gui.specter_state.add_seed(seed)
-                else:
-                    self.gui.specter_state.set_active_seed(seed)
+                self._import_seed(filename, entry["label"])
                 self.gui.show_menu("seed_detail")
             except Exception as exc:
                 self._show_result(str(exc), True)
@@ -195,6 +198,46 @@ class SDCardScreen(lv.obj):
                 self._import_wallet(filename, entry["label"])
             except Exception as exc:
                 self._show_result(str(exc), True)
+
+    def _import_seed(self, filename, label):
+        mnemonic = self.storage.load_sd_mnemonic(filename)
+        state = self.gui.specter_state
+        seed = next((item for item in state.loaded_seeds
+                     if item.mnemonic == mnemonic), None)
+        imported = seed is None
+        if imported:
+            seed = Seed(label=label, mnemonic=mnemonic)
+            state.add_seed(seed)
+        else:
+            state.set_active_seed(seed)
+        return seed, imported
+
+    def _import_all(self, event):
+        imported_seeds = 0
+        imported_wallets = 0
+        failures = 0
+        for entry in self.storage.list_sd_entries():
+            try:
+                if entry["kind"] == self.storage.SD_SEED:
+                    _, imported = self._import_seed(entry["name"], entry["label"])
+                    imported_seeds += 1 if imported else 0
+                elif entry["kind"] == self.storage.SD_WALLET:
+                    _, imported = self._import_wallet(
+                        entry["name"], entry["label"], navigate=False
+                    )
+                    imported_wallets += 1 if imported else 0
+            except Exception as exc:
+                failures += 1
+                print("SD bulk import:", entry["name"], exc)
+
+        result = "Imported %d seed phrase(s) and %d wallet(s)" % (
+            imported_seeds, imported_wallets
+        )
+        if failures:
+            result += " | %d failed" % failures
+        elif imported_seeds == 0 and imported_wallets == 0:
+            result = "All seed phrases and wallets are already imported"
+        self._show_result(result, failures > 0)
 
     @staticmethod
     def _descriptor_fingerprints(descriptor):
@@ -229,12 +272,13 @@ class SDCardScreen(lv.obj):
                     return None
         return None
 
-    def _import_wallet(self, filename, fallback_label):
+    def _import_wallet(self, filename, fallback_label, navigate=True):
         payload = self.storage.load_sd_wallet(filename)
         descriptor = payload["descriptor"].strip()
         state = self.gui.specter_state
         wallet = next((item for item in state.registered_wallets
                        if item.descriptor == descriptor), None)
+        imported = wallet is None
         if wallet is None:
             fingerprints = self._descriptor_fingerprints(descriptor)
             threshold = self._descriptor_threshold(descriptor)
@@ -264,7 +308,9 @@ class SDCardScreen(lv.obj):
             state.register_wallet(wallet, imported=True, source="SD card")
         else:
             state.set_active_wallet(wallet)
-        self.gui.show_menu("wallet_info")
+        if navigate:
+            self.gui.show_menu("wallet_info")
+        return wallet, imported
 
     def _delete_file(self, filename):
         try:

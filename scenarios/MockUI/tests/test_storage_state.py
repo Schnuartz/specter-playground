@@ -190,3 +190,63 @@ def test_imported_wallet_records_sd_source():
     assert state.active_wallet is wallet
     assert wallet.has_been_exported is True
     assert wallet.shared_with == ["SD card"]
+
+
+def test_bulk_sd_import_loads_all_seeds_and_wallets_without_duplicates():
+    from MockUI.screens.sd_card_screen import SDCardScreen
+
+    entries = [
+        {"name": "seed.txt", "label": "Test seed", "kind": SeedStorage.SD_SEED},
+        {"name": "wallet.json", "label": "Test wallet", "kind": SeedStorage.SD_WALLET},
+        {"name": "payment.psbt", "label": "Payment", "kind": SeedStorage.SD_TRANSACTION},
+    ]
+
+    class Storage:
+        SD_SEED = SeedStorage.SD_SEED
+        SD_WALLET = SeedStorage.SD_WALLET
+
+        def list_sd_entries(self):
+            return entries
+
+        def load_sd_mnemonic(self, filename):
+            assert filename == "seed.txt"
+            return MNEMONIC
+
+        def load_sd_wallet(self, filename):
+            assert filename == "wallet.json"
+            return {
+                "label": "Test wallet",
+                "descriptor": "wpkh([73c5da0a/84h/1h/0h]tpub-example/0/*)",
+            }
+
+    class Message:
+        def set_text(self, text):
+            self.text = text
+
+        def set_style_text_color(self, color, selector):
+            pass
+
+    class GUI:
+        def __init__(self):
+            self.specter_state = DeviceState()
+
+        def show_menu(self, name):
+            raise AssertionError("Bulk import must not leave the SD card screen")
+
+    screen = object.__new__(SDCardScreen)
+    screen.gui = GUI()
+    screen.storage = Storage()
+    screen.message = Message()
+
+    screen._import_all(None)
+
+    assert len(screen.gui.specter_state.loaded_seeds) == 1
+    assert len(screen.gui.specter_state.registered_wallets) == 2
+    assert screen.gui.specter_state.registered_wallets[-1].label == "Test wallet"
+    assert screen.message.text == "Imported 1 seed phrase(s) and 1 wallet(s)"
+
+    screen._import_all(None)
+
+    assert len(screen.gui.specter_state.loaded_seeds) == 1
+    assert len(screen.gui.specter_state.registered_wallets) == 2
+    assert screen.message.text == "All seed phrases and wallets are already imported"
