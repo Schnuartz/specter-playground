@@ -1,4 +1,5 @@
 import sys
+import json
 from types import ModuleType
 
 import pytest
@@ -6,6 +7,7 @@ import lvgl as lv
 
 from MockUI.stubs.device_state import DeviceState
 from MockUI.stubs.seed import Seed
+from MockUI.stubs.wallet import Wallet
 from MockUI.storage import SeedStorage, StorageError
 from MockUI.basic.utils.keyboard_layouts import _number_layout
 from MockUI.basic.utils.keyboard_manager import Layout
@@ -137,3 +139,54 @@ def test_javacard_transport_import_does_not_initialize_flash_backend(tmp_path, m
 
     assert storage._get_connection() is connection
     assert "keystore.flash" not in sys.modules
+
+
+def test_sd_files_are_classified_by_content(tmp_path, monkeypatch):
+    flash = tmp_path / "flash"
+    card = tmp_path / "sd"
+    flash.mkdir()
+    card.mkdir()
+    storage = SeedStorage(str(flash), str(card))
+    monkeypatch.setattr(storage, "sd_present", lambda: True)
+
+    (card / "public-seed.txt").write_text(MNEMONIC + "\n", encoding="utf-8")
+    (card / "wallet.json").write_text(json.dumps({
+        "label": "Test wallet",
+        "descriptor": "wpkh([73c5da0a/84h/1h/0h]tpub-example/0/*)",
+    }), encoding="utf-8")
+    (card / "payment.psbt").write_bytes(b"psbt\xfftest")
+    (card / "README.txt").write_text("Public demo files", encoding="utf-8")
+
+    entries = {entry["name"]: entry for entry in storage.list_sd_entries()}
+
+    assert entries["public-seed.txt"]["kind"] == storage.SD_SEED
+    assert entries["public-seed.txt"]["word_count"] == 12
+    assert entries["wallet.json"]["kind"] == storage.SD_WALLET
+    assert entries["wallet.json"]["label"] == "Test wallet"
+    assert entries["payment.psbt"]["kind"] == storage.SD_TRANSACTION
+    assert entries["README.txt"]["kind"] == storage.SD_OTHER
+    assert storage.load_sd_mnemonic("public-seed.txt") == MNEMONIC
+    assert storage.load_sd_wallet("wallet.json")["descriptor"].startswith("wpkh(")
+
+
+def test_descriptor_metadata_is_extracted_for_wallet_import():
+    from MockUI.screens.sd_card_screen import SDCardScreen
+
+    descriptor = (
+        "wsh(sortedmulti(2,[73c5da0a/48h/1h/0h/2h]tpub-a/0/*,"
+        "[f00dbabe/48h/1h/0h/2h]tpub-b/0/*))"
+    )
+
+    assert SDCardScreen._descriptor_fingerprints(descriptor) == ["73c5da0a", "f00dbabe"]
+    assert SDCardScreen._descriptor_threshold(descriptor) == 2
+
+
+def test_imported_wallet_records_sd_source():
+    state = DeviceState()
+    wallet = Wallet("Imported", descriptor="wpkh(xpub-example)")
+
+    state.register_wallet(wallet, imported=True, source="SD card")
+
+    assert state.active_wallet is wallet
+    assert wallet.has_been_exported is True
+    assert wallet.shared_with == ["SD card"]

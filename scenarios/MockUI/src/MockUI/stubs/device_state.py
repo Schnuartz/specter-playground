@@ -32,6 +32,7 @@ class DeviceState:
         # Wallet (descriptor) related — persisted in flash
         self.registered_wallets = []
         self.active_wallet = None
+        self.pending_psbt = None
 
         #KeyStores
         self._SmartCard_hasSeed = False
@@ -169,7 +170,7 @@ class DeviceState:
         return wallet in self.wallets_for_seed(seed)
 
     # ── Wallet helpers ───────────────────────────────────────────────
-    def register_wallet(self, wallet, imported=False):
+    def register_wallet(self, wallet, imported=False, source="SD card"):
         """Register a wallet descriptor. Returns the wallet.
 
         Args:
@@ -179,7 +180,7 @@ class DeviceState:
                 and therefore already "connected".
         """
         if imported:
-            wallet.mark_shared()
+            wallet.mark_shared(source)
         self.registered_wallets.append(wallet)
         self.set_active_wallet(wallet)
         return wallet

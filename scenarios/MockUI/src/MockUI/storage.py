@@ -7,7 +7,8 @@ physical build supplies the real reader, so both targets exercise the same
 """
 
 import os
-from binascii import hexlify
+import json
+from binascii import a2b_base64, hexlify
 from io import BytesIO
 
 from embit import bip39
@@ -30,6 +31,10 @@ class CardPinError(StorageError):
 class SeedStorage:
     MAGIC = b"sdiy\x00"
     KEYS = {b"\x01": "enc", b"\x02": "entropy"}
+    SD_SEED = "seed"
+    SD_TRANSACTION = "transaction"
+    SD_WALLET = "wallet"
+    SD_OTHER = "other"
 
     def __init__(self, flash_root="/flash", sd_root="/sd", connection=None):
         if sd_root == "/sd":
@@ -144,6 +149,139 @@ class SeedStorage:
                 size = 0
             files.append((name, size))
         return files
+
+    def _read_sd_file(self, filename):
+        if not filename or "/" in filename or "\\" in filename:
+            raise StorageError("Invalid SD card filename")
+        try:
+            with open(self.sd_root + "/" + filename, "rb") as stream:
+                return stream.read()
+        except OSError as exc:
+            raise StorageError("SD card file could not be read") from exc
+
+    @staticmethod
+    def _text_payload(data):
+        try:
+            text = data.decode().strip()
+        except (UnicodeError, ValueError):
+            return None
+        if text.startswith("\ufeff"):
+            text = text[1:].strip()
+        return text
+
+    @staticmethod
+    def _mnemonic_from_text(text):
+        if not text:
+            return None
+        mnemonic = " ".join(text.split())
+        try:
+            return mnemonic if bip39.mnemonic_is_valid(mnemonic) else None
+        except Exception:
+            return None
+
+    @staticmethod
+    def _wallet_from_text(text):
+        if not text:
+            return None
+        try:
+            payload = json.loads(text)
+        except (ValueError, TypeError):
+            payload = None
+        if isinstance(payload, dict) and isinstance(payload.get("descriptor"), str):
+            return payload
+
+        descriptor_prefixes = ("pkh(", "wpkh(", "sh(", "wsh(", "tr(", "combo(")
+        if text.startswith(descriptor_prefixes):
+            return {"descriptor": text}
+        return None
+
+    @staticmethod
+    def _is_psbt(data, text):
+        if data.startswith(b"psbt\xff"):
+            return True
+        if text and text.startswith("cHNidP"):
+            try:
+                return a2b_base64(text).startswith(b"psbt\xff")
+            except Exception:
+                return False
+        return False
+
+    @staticmethod
+    def _display_name(filename):
+        name = filename.rsplit(".", 1)[0].replace("_", " ").replace("-", " ")
+        parts = name.split()
+        if parts and parts[0].isdigit():
+            parts = parts[1:]
+        return " ".join(parts) or filename
+
+    def classify_sd_file(self, filename, size=None):
+        """Inspect an SD file and return display metadata for the browser UI."""
+        if size is None:
+            try:
+                size = os.stat(self.sd_root + "/" + filename)[6]
+            except OSError:
+                size = 0
+
+        if filename.lower().startswith(self.sd_prefix.lower()):
+            return {
+                "name": filename, "size": size, "kind": self.SD_SEED,
+                "label": self._display_name(filename.split(".", 1)[-1]),
+                "detail": "Encrypted seed phrase", "word_count": None,
+                "encrypted": True,
+            }
+
+        try:
+            data = self._read_sd_file(filename)
+        except StorageError:
+            data = b""
+        text = self._text_payload(data)
+        mnemonic = self._mnemonic_from_text(text)
+        if mnemonic:
+            words = len(mnemonic.split())
+            return {
+                "name": filename, "size": size, "kind": self.SD_SEED,
+                "label": self._display_name(filename),
+                "detail": "Seed phrase · %d words" % words,
+                "word_count": words, "encrypted": False,
+            }
+
+        if self._is_psbt(data, text) or filename.lower().endswith(".psbt"):
+            return {
+                "name": filename, "size": size, "kind": self.SD_TRANSACTION,
+                "label": self._display_name(filename),
+                "detail": "Bitcoin transaction · PSBT",
+            }
+
+        wallet = self._wallet_from_text(text)
+        if wallet:
+            return {
+                "name": filename, "size": size, "kind": self.SD_WALLET,
+                "label": wallet.get("label") or self._display_name(filename),
+                "detail": "Wallet descriptor",
+            }
+
+        return {
+            "name": filename, "size": size, "kind": self.SD_OTHER,
+            "label": self._display_name(filename), "detail": "Other file",
+        }
+
+    def list_sd_entries(self):
+        return [self.classify_sd_file(filename, size)
+                for filename, size in self.list_sd_files()]
+
+    def load_sd_mnemonic(self, filename):
+        if filename.lower().startswith(self.sd_prefix.lower()):
+            return self.load_sd_seed(filename)
+        mnemonic = self._mnemonic_from_text(self._text_payload(self._read_sd_file(filename)))
+        if not mnemonic:
+            raise StorageError("File does not contain a valid BIP39 seed phrase")
+        return mnemonic
+
+    def load_sd_wallet(self, filename):
+        payload = self._wallet_from_text(self._text_payload(self._read_sd_file(filename)))
+        if not payload:
+            raise StorageError("File does not contain a wallet descriptor")
+        return payload
 
     def save_sd_seed(self, mnemonic, name):
         if not self.sd_present():

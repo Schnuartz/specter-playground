@@ -11,6 +11,9 @@ from ..basic.ui_consts import (
 )
 from ..basic.symbol_lib import BTC_ICONS
 from ..stubs.seed import Seed
+from ..stubs.wallet import (
+    Wallet, ADDR_NATIVE_SEGWIT, ADDR_NESTED_SEGWIT, ADDR_LEGACY, ADDR_TAPROOT,
+)
 
 
 def _format_size(size):
@@ -56,12 +59,33 @@ class SDCardScreen(lv.obj):
         if active is not None and active.mnemonic:
             self._add_action("Save active seed to SD card", GREEN_HEX, self._save_active_seed)
 
-        files = self.storage.list_sd_files()
-        self.message.set_text("%d file(s) · seed files are encrypted for this device" % len(files))
-        if not files:
+        entries = self.storage.list_sd_entries()
+        counts = {}
+        for entry in entries:
+            counts[entry["kind"]] = counts.get(entry["kind"], 0) + 1
+        self.message.set_text(
+            "%d seed phrase(s) · %d transaction(s) · %d wallet descriptor(s)" % (
+                counts.get(self.storage.SD_SEED, 0),
+                counts.get(self.storage.SD_TRANSACTION, 0),
+                counts.get(self.storage.SD_WALLET, 0),
+            )
+        )
+        if not entries:
             self._add_info("The SD card is empty")
-        for filename, size in files:
-            self._add_file_row(filename, size)
+
+        categories = (
+            (self.storage.SD_SEED, "Seed phrases", BTC_ICONS.MNEMONIC, GREEN_HEX),
+            (self.storage.SD_TRANSACTION, "Bitcoin transactions", BTC_ICONS.TRANSACTIONS, ORANGE_HEX),
+            (self.storage.SD_WALLET, "Wallet descriptors", BTC_ICONS.WALLET, CYAN_HEX),
+            (self.storage.SD_OTHER, "Other files", BTC_ICONS.FILE, WHITE_HEX),
+        )
+        for kind, heading, icon, color_key in categories:
+            group = [entry for entry in entries if entry["kind"] == kind]
+            if not group:
+                continue
+            self._add_category(heading, len(group), icon, color_key)
+            for entry in group:
+                self._add_file_row(entry, icon, color_key)
 
     def _add_info(self, text):
         label = lv.label(self)
@@ -82,24 +106,32 @@ class SDCardScreen(lv.obj):
         label.center()
         button.add_event_cb(callback, lv.EVENT.CLICKED, None)
 
-    def _classify(self, filename):
-        lower = filename.lower()
-        if lower.startswith(self.storage.sd_prefix.lower()):
-            return BTC_ICONS.KEY, GREEN_HEX, "Encrypted recovery phrase"
-        if lower.endswith(".psbt"):
-            return BTC_ICONS.TRANSACTIONS, ORANGE_HEX, "Bitcoin transaction"
-        if lower.endswith(".json"):
-            return BTC_ICONS.WALLET, CYAN_HEX, "Wallet descriptor"
-        return BTC_ICONS.FILE, WHITE_HEX, "File"
+    def _add_category(self, text, count, icon, color_key):
+        heading = lv.obj(self)
+        heading.set_size(lv.pct(100), 38)
+        heading.set_style_bg_opa(lv.OPA.TRANSP, 0)
+        heading.set_style_border_width(0, 0)
+        heading.set_style_pad_all(0, 0)
+        heading.set_layout(lv.LAYOUT.FLEX)
+        heading.set_flex_flow(lv.FLEX_FLOW.ROW)
+        heading.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
+        heading.set_style_pad_column(PAD_SM, 0)
+        image = lv.image(heading)
+        icon(theme_color(color_key)).add_to_parent(image, zoom=150)
+        label = lv.label(heading)
+        label.set_text("%s (%d)" % (text, count))
+        label.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
+        label.set_style_text_color(theme_color(color_key), 0)
 
-    def _add_file_row(self, filename, size):
-        icon, color_key, kind = self._classify(filename)
+    def _add_file_row(self, entry, icon, color_key):
         row = lv.button(self)
         row.set_size(lv.pct(100), 76)
         row.set_style_bg_color(theme_color(BG_CARD_HEX), 0)
         row.set_style_bg_opa(lv.OPA.COVER, 0)
         row.set_style_radius(10, 0)
-        row.set_style_border_width(0, 0)
+        row.set_style_border_width(4, 0)
+        row.set_style_border_side(lv.BORDER_SIDE.LEFT, 0)
+        row.set_style_border_color(theme_color(color_key), 0)
         row.set_layout(lv.LAYOUT.FLEX)
         row.set_flex_flow(lv.FLEX_FLOW.ROW)
         row.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
@@ -114,16 +146,16 @@ class SDCardScreen(lv.obj):
         info.set_style_border_width(0, 0)
         info.set_style_pad_all(0, 0)
         name = lv.label(info)
-        name.set_text(filename)
+        name.set_text(entry["label"])
         name.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
         name.set_style_text_color(theme_color(WHITE_HEX), 0)
         detail = lv.label(info)
-        detail.set_text("%s · %s" % (kind, _format_size(size)))
+        detail.set_text("%s · %s" % (entry["detail"], _format_size(entry["size"])))
         detail.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
         detail.set_style_text_color(theme_color(color_key), 0)
         detail.align_to(name, lv.ALIGN.OUT_BOTTOM_LEFT, 0, 3)
-        row.add_event_cb(lambda event, name=filename: self._open_file(name), lv.EVENT.CLICKED, None)
-        row.add_event_cb(lambda event, name=filename: self._delete_file(name), lv.EVENT.LONG_PRESSED, None)
+        row.add_event_cb(lambda event, item=entry: self._open_file(item), lv.EVENT.CLICKED, None)
+        row.add_event_cb(lambda event, name=entry["name"]: self._delete_file(name), lv.EVENT.LONG_PRESSED, None)
 
     def _show_result(self, text, error=False):
         self.message.set_text(text)
@@ -139,21 +171,99 @@ class SDCardScreen(lv.obj):
         except Exception as exc:
             self._show_result(str(exc), True)
 
-    def _open_file(self, filename):
-        if filename.lower().startswith(self.storage.sd_prefix.lower()):
+    def _open_file(self, entry):
+        filename = entry["name"]
+        if entry["kind"] == self.storage.SD_SEED:
             try:
-                mnemonic = self.storage.load_sd_seed(filename)
-                label = filename.split(".", 1)[-1].replace("_", " ")
-                seed = Seed(label=label, mnemonic=mnemonic)
-                self.gui.specter_state.add_seed(seed)
-                self._show_result("Recovery phrase loaded")
+                mnemonic = self.storage.load_sd_mnemonic(filename)
+                seed = next((item for item in self.gui.specter_state.loaded_seeds
+                             if item.mnemonic == mnemonic), None)
+                if seed is None:
+                    seed = Seed(label=entry["label"], mnemonic=mnemonic)
+                    self.gui.specter_state.add_seed(seed)
+                else:
+                    self.gui.specter_state.set_active_seed(seed)
                 self.gui.show_menu("seed_detail")
             except Exception as exc:
                 self._show_result(str(exc), True)
-        elif filename.lower().endswith(".psbt"):
+        elif entry["kind"] == self.storage.SD_TRANSACTION:
+            self.gui.specter_state.pending_psbt = filename
             self.gui.show_menu("signing")
-        elif filename.lower().endswith(".json"):
-            self.gui.show_menu("add_wallet")
+        elif entry["kind"] == self.storage.SD_WALLET:
+            try:
+                self._import_wallet(filename, entry["label"])
+            except Exception as exc:
+                self._show_result(str(exc), True)
+
+    @staticmethod
+    def _descriptor_fingerprints(descriptor):
+        fingerprints = []
+        position = 0
+        hex_chars = "0123456789abcdefABCDEF"
+        while True:
+            start = descriptor.find("[", position)
+            if start < 0:
+                break
+            end = descriptor.find("]", start + 1)
+            if end < 0:
+                break
+            origin = descriptor[start + 1:end]
+            fingerprint = origin.split("/", 1)[0]
+            if len(fingerprint) == 8 and all(char in hex_chars for char in fingerprint):
+                fingerprint = fingerprint.lower()
+                if fingerprint not in fingerprints:
+                    fingerprints.append(fingerprint)
+            position = end + 1
+        return fingerprints
+
+    @staticmethod
+    def _descriptor_threshold(descriptor):
+        for marker in ("sortedmulti(", "multi("):
+            start = descriptor.find(marker)
+            if start >= 0:
+                value = descriptor[start + len(marker):].split(",", 1)[0]
+                try:
+                    return int(value)
+                except ValueError:
+                    return None
+        return None
+
+    def _import_wallet(self, filename, fallback_label):
+        payload = self.storage.load_sd_wallet(filename)
+        descriptor = payload["descriptor"].strip()
+        state = self.gui.specter_state
+        wallet = next((item for item in state.registered_wallets
+                       if item.descriptor == descriptor), None)
+        if wallet is None:
+            fingerprints = self._descriptor_fingerprints(descriptor)
+            threshold = self._descriptor_threshold(descriptor)
+            is_multisig = threshold is not None
+            if is_multisig and len(fingerprints) < threshold:
+                raise ValueError("Wallet descriptor does not contain enough signer fingerprints")
+            lower = descriptor.lower()
+            if lower.startswith("tr("):
+                address_type = ADDR_TAPROOT
+            elif lower.startswith("pkh("):
+                address_type = ADDR_LEGACY
+            elif lower.startswith("sh(wpkh("):
+                address_type = ADDR_NESTED_SEGWIT
+            else:
+                address_type = ADDR_NATIVE_SEGWIT
+            testnet_markers = ("tpub", "upub", "vpub", "tb1", "[1/")
+            network = "testnet" if any(marker in lower for marker in testnet_markers) else "mainnet"
+            wallet = Wallet(
+                label=payload.get("label") or fallback_label,
+                descriptor=descriptor,
+                isMultiSig=is_multisig,
+                net=network,
+                required_fingerprints=fingerprints,
+                threshold=threshold,
+                address_type=address_type,
+            )
+            state.register_wallet(wallet, imported=True, source="SD card")
+        else:
+            state.set_active_wallet(wallet)
+        self.gui.show_menu("wallet_info")
 
     def _delete_file(self, filename):
         try:

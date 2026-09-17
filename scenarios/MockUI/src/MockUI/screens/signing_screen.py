@@ -34,6 +34,9 @@ class SigningScreen(lv.obj):
         title.set_style_text_font(theme_font(FONT_TITLE_THEME), 0)
         title.set_style_text_color(theme_color(WHITE_HEX), 0)
 
+        if gui.specter_state.pending_psbt:
+            self._add_info_row("SD card file", gui.specter_state.pending_psbt)
+
         # Transaction summary (mock data)
         self._add_info_row(_tr("SCHN_SENDING_TO"), "bc1q...xz7k4")
         self._add_info_row(_tr("SCHN_AMOUNT"), "0.005 BTC")
