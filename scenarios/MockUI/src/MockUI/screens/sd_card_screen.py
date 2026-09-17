@@ -64,7 +64,7 @@ class SDCardScreen(lv.obj):
         for entry in entries:
             counts[entry["kind"]] = counts.get(entry["kind"], 0) + 1
         self.message.set_text(
-            "%d seed phrase(s) · %d transaction(s) · %d wallet descriptor(s)" % (
+            "%d seed phrase(s) | %d transaction(s) | %d wallet descriptor(s)" % (
                 counts.get(self.storage.SD_SEED, 0),
                 counts.get(self.storage.SD_TRANSACTION, 0),
                 counts.get(self.storage.SD_WALLET, 0),
@@ -145,12 +145,13 @@ class SDCardScreen(lv.obj):
         info.set_style_bg_opa(lv.OPA.TRANSP, 0)
         info.set_style_border_width(0, 0)
         info.set_style_pad_all(0, 0)
+        info.remove_flag(lv.obj.FLAG.CLICKABLE)
         name = lv.label(info)
         name.set_text(entry["label"])
         name.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
         name.set_style_text_color(theme_color(WHITE_HEX), 0)
         detail = lv.label(info)
-        detail.set_text("%s · %s" % (entry["detail"], _format_size(entry["size"])))
+        detail.set_text("%s | %s" % (entry["detail"], _format_size(entry["size"])))
         detail.set_style_text_font(theme_font(FONT_SMALL_THEME), 0)
         detail.set_style_text_color(theme_color(color_key), 0)
         detail.align_to(name, lv.ALIGN.OUT_BOTTOM_LEFT, 0, 3)

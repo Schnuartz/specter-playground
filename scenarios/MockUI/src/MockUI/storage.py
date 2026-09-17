@@ -241,7 +241,7 @@ class SeedStorage:
             return {
                 "name": filename, "size": size, "kind": self.SD_SEED,
                 "label": self._display_name(filename),
-                "detail": "Seed phrase · %d words" % words,
+                "detail": "Seed phrase | %d words" % words,
                 "word_count": words, "encrypted": False,
             }
 
@@ -249,7 +249,7 @@ class SeedStorage:
             return {
                 "name": filename, "size": size, "kind": self.SD_TRANSACTION,
                 "label": self._display_name(filename),
-                "detail": "Bitcoin transaction · PSBT",
+                "detail": "Bitcoin transaction | PSBT",
             }
 
         wallet = self._wallet_from_text(text)
