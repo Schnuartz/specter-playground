@@ -84,28 +84,16 @@ jobs:
             git -C pages commit -m "Update Specter browser preview from run ${{ github.event.workflow_run.id }}"
             git -C pages push origin HEAD:gh-pages
           fi
-      - name: Check whether GitHub Pages is enabled
-        id: pages
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if gh api "repos/$GITHUB_REPOSITORY/pages" >/dev/null 2>&1; then
-            echo 'enabled=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'enabled=false' >> "$GITHUB_OUTPUT"
-            echo 'GitHub Pages is disabled; keeping the verified artifacts and ClavaStack simulator link.' >> "$GITHUB_STEP_SUMMARY"
-          fi
       - name: Stage a clean static Pages artifact
-        if: steps.prepare.outputs.has_site == 'true' && steps.pages.outputs.enabled == 'true'
+        if: steps.prepare.outputs.has_site == 'true'
         run: python3 -c "import shutil; shutil.copytree('pages', 'site-dist', ignore=shutil.ignore_patterns('.git'))"
       - uses: actions/upload-pages-artifact@v3
-        if: steps.prepare.outputs.has_site == 'true' && steps.pages.outputs.enabled == 'true'
+        if: steps.prepare.outputs.has_site == 'true'
         with:
           path: site-dist
       - uses: actions/deploy-pages@v4
-        if: steps.prepare.outputs.has_site == 'true' && steps.pages.outputs.enabled == 'true'
+        if: steps.prepare.outputs.has_site == 'true'
       - name: Replace the single PR build comment
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          PUBLIC_SIMULATOR_URL: https://try.clavastack.com/?variant=schnuartz
         run: python3 web/tools/publish_preview.py comment --state /tmp/specter-preview-state.json

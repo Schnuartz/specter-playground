@@ -179,7 +179,6 @@ jobs:
       - name: Record browser provenance
         run: python3 web/tools/source_info.py browser
       - uses: actions/upload-artifact@v4
-        id: browser-upload
         with:
           name: browser-simulator
           if-no-files-found: error
@@ -193,16 +192,3 @@ jobs:
             web/browser/current.json
             web/builds/**
             source.json
-      - name: Add direct simulator link to the workflow summary
-        env:
-          BROWSER_ARTIFACT_URL: ${{ steps.browser-upload.outputs.artifact-url }}
-        run: |
-          {
-            echo '## Browser simulator'
-            echo
-            echo '[Open the working MockUI simulator](https://try.clavastack.com/?variant=schnuartz)'
-            echo
-            echo "[Download the tested browser build]($BROWSER_ARTIFACT_URL)"
-            echo
-            echo 'The public link uses the deployed ClavaStack simulator. The artifact above contains the exact build from this commit.'
-          } >> "$GITHUB_STEP_SUMMARY"

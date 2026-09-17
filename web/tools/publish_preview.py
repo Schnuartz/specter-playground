@@ -197,13 +197,10 @@ def comment(state: dict):
     if state["published"]:
         repo = os.environ["GITHUB_REPOSITORY"]
         pages_owner = repo.split("/")[0].lower()
-        simulator_url = os.environ.get("PUBLIC_SIMULATOR_URL") or \
-            f"https://{pages_owner}.github.io/{repo.split('/')[1]}/pr/{number}/"
-        browser_url = f"{run_url}/artifacts/{artifact_id(state['run_id'], 'browser-simulator')}"
+        pages_url = f"https://{pages_owner}.github.io/{repo.split('/')[1]}/pr/{number}/"
         firmware_url = f"{run_url}/artifacts/{artifact_id(state['run_id'], 'firmware-binaries')}"
         body = (f"{MARKER}\n🧪 **Playground PR Build** · `{sha[:12]}` ✅\n\n"
-                f"🖥️ [Open browser simulator]({simulator_url})\n\n"
-                f"📦 [Download the tested browser build from this commit]({browser_url})\n\n"
+                f"🖥️ [Open browser simulator]({pages_url})\n\n"
                 f"⬇️ [Download firmware from the same commit]({firmware_url})\n\n"
                 f"🔧 [Build workflow and logs]({run_url})\n\n"
                 "⚠️ **Experimental development build.** Never use real funds or enter a real seed phrase. "
