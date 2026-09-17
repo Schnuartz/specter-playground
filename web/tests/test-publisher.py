@@ -148,6 +148,31 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual(len(posted), 1)
         self.assertIn("no published browser preview", posted[0]["body"])
 
+    def test_success_comment_uses_public_simulator_and_exact_artifacts(self):
+        calls = []
+        artifacts = {"artifacts": [
+            {"id": 31, "name": "browser-simulator", "expired": False},
+            {"id": 32, "name": "firmware-binaries", "expired": False},
+        ]}
+        def fake_api(method, path, body=None):
+            calls.append((method, path, body))
+            if path.startswith("/actions/runs/1/artifacts"):
+                return artifacts
+            return [] if method == "GET" else None
+        state = {"number": 17, "sha": SHA, "run_url": "https://github.com/example/actions/runs/1",
+                 "run_id": 1, "published": True}
+        environment = {"GITHUB_REPOSITORY": REPO,
+                       "PUBLIC_SIMULATOR_URL": "https://try.clavastack.com/?variant=schnuartz"}
+        with patch.dict("os.environ", environment), \
+                patch.object(publish_preview, "api", side_effect=fake_api):
+            publish_preview.comment(state)
+        posted = [body for method, _, body in calls if method == "POST"]
+        self.assertEqual(len(posted), 1)
+        body = posted[0]["body"]
+        self.assertIn("https://try.clavastack.com/?variant=schnuartz", body)
+        self.assertIn("/artifacts/31", body)
+        self.assertIn("/artifacts/32", body)
+
     def test_superseded_run_writes_a_skipped_state_for_later_steps(self):
         preview = self.root / "pages/pr/17"
         preview.mkdir(parents=True)
