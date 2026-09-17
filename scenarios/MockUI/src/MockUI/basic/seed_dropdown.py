@@ -5,7 +5,7 @@ from .ui_consts import (
     theme_color, theme_font, FONT_TITLE_THEME, FONT_TEXT_THEME, FONT_SMALL_THEME, FONT_CAPTION_THEME,
     SEED_DROPDOWN_HEIGHT, SCREEN_WIDTH, PAD_MD, PAD_SM, ROW_HEIGHT, ROW_ICON_ZOOM,
     BG_BLACK_HEX, BG_CARD_HEX, BG_ELEVATED_HEX,
-    WHITE_HEX, GREY_LIGHT_HEX, CYAN_HEX, CYAN_DARK_HEX, GREEN_HEX,
+    WHITE_HEX, GREY_LIGHT_HEX, CYAN_HEX, CYAN_DARK_HEX, GREEN_HEX, ORANGE_HEX, PAD_LG,
 )
 from .symbol_lib import BTC_ICONS
 from .modal_overlay import ModalOverlay
@@ -134,10 +134,15 @@ class SeedDropdown(lv.obj):
                 btn.set_flex_flow(lv.FLEX_FLOW.ROW)
                 btn.set_flex_align(lv.FLEX_ALIGN.START, lv.FLEX_ALIGN.CENTER, lv.FLEX_ALIGN.CENTER)
                 btn.set_style_pad_column(PAD_SM, 0)
-                btn.set_style_pad_left(PAD_MD, 0)
+                derived = seed.bip85_depth > 0
+                btn.set_style_pad_left(PAD_MD + (PAD_LG if derived else 0), 0)
 
                 ico = lv.image(btn)
-                BTC_ICONS.KEY(theme_color(CYAN_HEX) if is_active else theme_color(GREY_LIGHT_HEX)).add_to_parent(ico, zoom=ROW_ICON_ZOOM)
+                if derived:
+                    derived_color = ORANGE_HEX if seed.bip85_depth > 1 else GREEN_HEX
+                    BTC_ICONS.SHARED_WALLET(theme_color(derived_color)).add_to_parent(ico, zoom=ROW_ICON_ZOOM)
+                else:
+                    BTC_ICONS.KEY(theme_color(CYAN_HEX) if is_active else theme_color(GREY_LIGHT_HEX)).add_to_parent(ico, zoom=ROW_ICON_ZOOM)
 
                 lbl = lv.label(btn)
                 name = seed.label

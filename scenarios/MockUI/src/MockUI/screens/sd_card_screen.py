@@ -199,7 +199,7 @@ class SDCardScreen(lv.obj):
             except Exception as exc:
                 self._show_result(str(exc), True)
 
-    def _import_seed(self, filename, label):
+    def _import_seed(self, filename, label, sort=True):
         mnemonic = self.storage.load_sd_mnemonic(filename)
         state = self.gui.specter_state
         seed = next((item for item in state.loaded_seeds
@@ -210,6 +210,8 @@ class SDCardScreen(lv.obj):
             state.add_seed(seed)
         else:
             state.set_active_seed(seed)
+        if sort:
+            state.sort_bip85_seeds()
         return seed, imported
 
     def _import_all(self, event):
@@ -219,7 +221,9 @@ class SDCardScreen(lv.obj):
         for entry in self.storage.list_sd_entries():
             try:
                 if entry["kind"] == self.storage.SD_SEED:
-                    _, imported = self._import_seed(entry["name"], entry["label"])
+                    _, imported = self._import_seed(
+                        entry["name"], entry["label"], sort=False
+                    )
                     imported_seeds += 1 if imported else 0
                 elif entry["kind"] == self.storage.SD_WALLET:
                     _, imported = self._import_wallet(
@@ -229,6 +233,8 @@ class SDCardScreen(lv.obj):
             except Exception as exc:
                 failures += 1
                 print("SD bulk import:", entry["name"], exc)
+
+        self.gui.specter_state.sort_bip85_seeds()
 
         result = "Imported %d seed phrase(s) and %d wallet(s)" % (
             imported_seeds, imported_wallets
