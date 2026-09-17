@@ -187,6 +187,7 @@ jobs:
             web/index.html
             web/assets/**
             web/browser/site.js
+            web/browser/demo-data.js
             web/browser/runtime-worker.js
             web/browser/runtime/**
             web/browser/current.json
