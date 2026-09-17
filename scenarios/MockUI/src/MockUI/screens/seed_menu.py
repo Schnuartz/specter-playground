@@ -123,7 +123,7 @@ class SeedMenu(lv.obj):
         derived = seed.bip85_depth > 0
         btn.set_style_pad_left(PAD_MD + (PAD_LG if derived else 0), 0)
         if derived:
-            btn.set_width(lv.pct(92))
+            btn.set_width(lv.pct(100))
             btn.set_style_margin_left(PAD_LG, 0)
 
         # BIP85 descendants use the derivation icon.  Grandchildren stay at
