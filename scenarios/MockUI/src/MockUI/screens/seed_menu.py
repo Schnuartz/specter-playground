@@ -122,6 +122,9 @@ class SeedMenu(lv.obj):
         btn.set_style_pad_column(PAD_SM, 0)
         derived = seed.bip85_depth > 0
         btn.set_style_pad_left(PAD_MD + (PAD_LG if derived else 0), 0)
+        if derived:
+            btn.set_width(lv.pct(92))
+            btn.set_style_margin_left(PAD_LG, 0)
 
         # BIP85 descendants use the derivation icon.  Grandchildren stay at
         # the same indentation but switch color to expose the second level.

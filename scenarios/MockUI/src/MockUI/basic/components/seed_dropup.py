@@ -44,6 +44,8 @@ class SeedDropUp(DropUp):
         )
         apply_style(card, "CONTEXT.SEED")
         if derived:
+            card.set_width(lv.pct(92))
+            card.set_style_margin_left(PAD_LG, 0)
             card.set_style_pad_left(PAD_LG, 0)
         return card
 
