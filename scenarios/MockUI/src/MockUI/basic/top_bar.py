@@ -52,7 +52,13 @@ class TopBar(lv.obj):
 
     def _hamburger_cb(self, e):
         if e.get_code() == lv.EVENT.CLICKED:
-            self.gui.show_menu("settings")
+            # The hamburger acts as a toggle: opening Settings pushes it onto
+            # the navigation stack, while a second click pops back to the
+            # screen that was visible before the menu opened.
+            if self.gui.ui_state.current_menu_id == "settings":
+                self.gui.show_menu(None)
+            else:
+                self.gui.show_menu("settings")
 
     def refresh(self, state):
         """Update battery from state."""
