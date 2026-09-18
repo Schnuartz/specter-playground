@@ -1,4 +1,4 @@
-"""Three main action buttons: Scan (large, centered), Receive, SD Card."""
+"""Three main action buttons: Scan (large, centered), Receive, Load from SD Card."""
 import lvgl as lv
 from .templates.specter_gui_base import t as _tr
 from .ui_consts import (
@@ -13,7 +13,7 @@ from .symbol_lib import BTC_ICONS
 
 class ActionButtons(lv.obj):
     """Three vertically stacked action buttons: Scan (largest, on top/centered),
-    Receive (below Scan), SD Card. All sized up for readability."""
+    Receive (below Scan), Load from SD Card. All sized up for readability."""
 
     def __init__(self, gui, parent):
         super().__init__(parent)
@@ -53,9 +53,9 @@ class ActionButtons(lv.obj):
             icon_zoom=300,
         )
 
-        # SD Card button
+        # Load from SD Card button
         self._make_btn(
-            _tr("SCHN_SD_CARD"),
+            _tr("SCHN_LOAD_FROM_SD"),
             BTC_ICONS.SD_CARD,
             BTN_SMALL_HEIGHT,
             self._sd_cb,
