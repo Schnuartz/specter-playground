@@ -241,40 +241,82 @@ class SDCardScreen(lv.obj):
         return seed, imported
 
     def _import_all(self, event):
-        imported_seeds = 0
-        imported_wallets = 0
-        failures = 0
-        first_wallet = None
+        selected_seeds = []
+        imported_wallet_list = []
+        state = self.gui.specter_state
         for entry in self.storage.list_sd_entries():
             try:
                 if entry["kind"] == self.storage.SD_SEED:
-                    _, imported = self._import_seed(
+                    seed, _ = self._import_seed(
                         entry["name"], entry["label"], sort=False
                     )
-                    imported_seeds += 1 if imported else 0
+                    if seed is not None and seed not in selected_seeds:
+                        selected_seeds.append(seed)
                 elif entry["kind"] == self.storage.SD_WALLET:
-                    wallet, imported = self._import_wallet(
+                    wallet, _ = self._import_wallet(
                         entry["name"], entry["label"], navigate=False
                     )
-                    if first_wallet is None:
-                        first_wallet = wallet
-                    imported_wallets += 1 if imported else 0
+                    if wallet is not None and wallet not in imported_wallet_list:
+                        imported_wallet_list.append(wallet)
             except Exception as exc:
-                failures += 1
                 print("SD bulk import:", entry["name"], exc)
 
-        self.gui.specter_state.sort_bip85_seeds()
-        if first_wallet is not None:
-            self.gui.specter_state.set_active_wallet(first_wallet)
+        state.sort_bip85_seeds()
 
-        result = "Imported %d seed phrase(s) and %d wallet(s)" % (
-            imported_seeds, imported_wallets
+        # Prefer a seed present on this card; when only wallets were imported,
+        # select one of their matching signer seeds. Fall back to the first
+        # loaded seed so the dashboard always opens with a useful selection.
+        selected_seed = None
+        for seed in selected_seeds:
+            matching_wallets = state.wallets_for_seed(seed) or []
+            if any(wallet in matching_wallets
+                   and not wallet.is_default_wallet()
+                   for wallet in imported_wallet_list):
+                selected_seed = seed
+                break
+        if selected_seed is None:
+            selected_seed = next(
+                (seed for seed in selected_seeds if seed in state.loaded_seeds),
+                None,
+            )
+        if selected_seed is None and imported_wallet_list:
+            for wallet in imported_wallet_list:
+                matching_seeds = state.seeds_for_wallet(wallet) or []
+                if matching_seeds:
+                    selected_seed = matching_seeds[0]
+                    break
+        if selected_seed is None and state.loaded_seeds:
+            selected_seed = state.loaded_seeds[0]
+
+        selected_wallet = None
+        if selected_seed is not None:
+            matching_wallets = state.wallets_for_seed(selected_seed) or []
+            selected_wallet = next(
+                (wallet for wallet in imported_wallet_list
+                 if wallet in matching_wallets),
+                None,
+            )
+            if selected_wallet is None:
+                selected_wallet = next(
+                    (wallet for wallet in matching_wallets
+                     if not wallet.is_default_wallet()),
+                    None,
+                )
+            if selected_wallet is None and matching_wallets:
+                selected_wallet = matching_wallets[0]
+        elif imported_wallet_list:
+            selected_wallet = imported_wallet_list[0]
+
+        if selected_seed is not None:
+            state.set_active_seed(selected_seed)
+        if selected_wallet is not None:
+            state.set_active_wallet(selected_wallet)
+        elif selected_seed is not None:
+            selected_wallet = state.active_wallet
+
+        self.gui.navigate_to(
+            "main", target_seed=selected_seed, target_wallet=selected_wallet
         )
-        if failures:
-            result += " | %d failed" % failures
-        elif imported_seeds == 0 and imported_wallets == 0:
-            result = "All seed phrases and wallets are already imported"
-        self._show_result(result, failures > 0)
 
     @staticmethod
     def _descriptor_fingerprints(descriptor):

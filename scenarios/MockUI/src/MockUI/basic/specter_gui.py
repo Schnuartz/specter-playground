@@ -53,10 +53,10 @@ _VIEW_MAP.update({
     "generate_seedphrase": get_view_factory("generate_seed"),
     "create_custom_wallet": get_view_factory("add_wallet"),
     "manage_storage": get_view_factory("sd_card"),
-    "select_language": get_view_factory("language_settings"),
     "select_theme": get_view_factory("theme_settings"),
-    "manage_preferences": get_view_factory("settings"),
+    "manage_preferences": get_view_factory("preferences"),
     "manage_settings": get_view_factory("settings"),
+    "select_language": get_view_factory("language_menu"),
 })
 
 

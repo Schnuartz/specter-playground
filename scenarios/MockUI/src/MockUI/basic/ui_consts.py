@@ -14,13 +14,13 @@ SCREEN_HEIGHT = const(800)
 # --- Layout zone heights (pixels) ---
 TOP_BAR_HEIGHT = const(56)
 SEED_DROPDOWN_HEIGHT = const(52)
-NAV_BAR_HEIGHT = const(56)
+NAV_BAR_HEIGHT = const(64)
 
 # Wallet section: fits ~3 wallet rows (bigger rows + more spacing between them)
 WALLET_SECTION_HEIGHT = const(260)
 
 # Action buttons fill remaining space
-# 800 - 56 - 52 - 260 - 56 = 376px for action area
+# 800 - 64 - 56 - 52 - 260 = 368px for action area
 
 # --- Button sizes ---
 # Sized so Scan + Receive + SD Card always fit the dashboard action area

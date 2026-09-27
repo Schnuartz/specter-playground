@@ -39,16 +39,16 @@ class AppScreen(SpecterGuiElement):
         self.battery = None
         self.view = None
 
-        # Schnuartz pages own their 56 px top bar, including the battery.
-        # AppScreen therefore remains a platform-neutral viewport and does not
-        # add a second context or battery row around the page.
         self._SUBELEMENTS = [("content", SpecterGuiElement)]
+        if self.device_state.has_battery:
+            self._SUBELEMENTS.append(("battery", Battery))
 
     def post_init(self):
         # FLAG.FLOATING must be set before any layout pass so the battery is
         # excluded from flex space distribution.
         if self.battery:
             self.battery.add_flag(lv.obj.FLAG.FLOATING)
+            self.refresh_battery()
 
         # Style the plain SpecterGuiElement content slot created by _init_grid.
         apply_style(self.content, "CONTAINER.CONTENT")
@@ -147,7 +147,13 @@ class AppScreen(SpecterGuiElement):
     def refresh_battery(self):
         """Update battery widget from current device_state."""
         if self.battery:
-            self.battery.update(self.device_state.battery_pct, self.device_state.is_charging)
+            if self.device_state.is_locked:
+                self.battery.add_flag(lv.obj.FLAG.HIDDEN)
+                return
+            self.battery.remove_flag(lv.obj.FLAG.HIDDEN)
+            value = self.device_state.battery_pct
+            self.battery.update(100 if value is None else value,
+                                self.device_state.is_charging)
 
     def refresh_context_bar(self):
         """Refresh context bar content (e.g. after seed/wallet rename)."""

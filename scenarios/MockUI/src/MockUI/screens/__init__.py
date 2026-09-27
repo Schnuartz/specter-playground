@@ -71,8 +71,14 @@ def get_screen_class(screen_id):
 
     # Settings screens
     elif screen_id == "settings":
-        from .settings_menu import SettingsMenu
+        from ..device_screens.settings_menu import SettingsMenu
         return SettingsMenu
+    elif screen_id == "preferences":
+        from ..device_screens.preferences_menu import PreferencesMenu
+        return PreferencesMenu
+    elif screen_id == "language_menu":
+        from ..device_screens.language_menu import LanguageMenu
+        return LanguageMenu
     elif screen_id == "security_settings":
         from .security_settings_screen import SecuritySettingsScreen
         return SecuritySettingsScreen
@@ -111,5 +117,10 @@ def get_screen_class(screen_id):
 
 def get_view_factory(screen_id):
     """Return a one-argument AppScreen factory for a reference page."""
+    if screen_id in ("settings", "preferences", "language_menu"):
+        def build_reference_menu(parent):
+            screen_class = get_screen_class(screen_id)
+            return screen_class(parent)
+        return build_reference_menu
     from .page import page_factory
     return page_factory(screen_id)
