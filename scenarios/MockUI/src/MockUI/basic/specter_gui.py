@@ -12,7 +12,6 @@ from .i18n import I18nManager
 from .theming import ThemeManager, apply_style
 from .tour import GuidedTour, INTRO_TOUR_STEPS
 from .components import NavigationBar, AppScreen
-from .top_bar import TopBar
 from .templates.specter_gui_base import bind_gui
 from .templates.rebuildable import RebuildableObj
 from .dashboard import Dashboard
@@ -63,11 +62,9 @@ _VIEW_MAP.update({
 
 class SpecterGui(RebuildableObj):
 
-    # Create the viewport first, then overlay the shared header and bottom bar.
-    # Later LVGL children are drawn above earlier ones.
+    # Ordered list: _init_grid() creates the app screen before bottom navigation.
     _SUBELEMENTS = [
         ("app_screen",     AppScreen),
-        ("top_bar",        TopBar),
         ("navigation_bar", NavigationBar),
     ]
 
@@ -164,8 +161,6 @@ class SpecterGui(RebuildableObj):
         # relayout any visible component halfway through an animation.
         if self.ui_state._is_animating:
             return
-        if self.top_bar:
-            self.top_bar.refresh(self.device_state)
         if self.app_screen:
             self.app_screen.refresh()
         if self.navigation_bar:
