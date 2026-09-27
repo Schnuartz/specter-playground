@@ -12,6 +12,7 @@ from .i18n import I18nManager
 from .theming import ThemeManager, apply_style
 from .tour import GuidedTour, INTRO_TOUR_STEPS
 from .components import NavigationBar, AppScreen
+from .top_bar import TopBar
 from .templates.specter_gui_base import bind_gui
 from .templates.rebuildable import RebuildableObj
 from .dashboard import Dashboard
@@ -65,6 +66,7 @@ class SpecterGui(RebuildableObj):
     # Ordered list: _init_grid() builds children top-to-bottom in list order.
     # MicroPython dicts do NOT preserve insertion order!
     _SUBELEMENTS = [
+        ("top_bar",        TopBar),
         ("app_screen",     AppScreen),
         ("navigation_bar", NavigationBar),
     ]
@@ -162,6 +164,8 @@ class SpecterGui(RebuildableObj):
         # relayout any visible component halfway through an animation.
         if self.ui_state._is_animating:
             return
+        if self.top_bar:
+            self.top_bar.refresh(self.device_state)
         if self.app_screen:
             self.app_screen.refresh()
         if self.navigation_bar:

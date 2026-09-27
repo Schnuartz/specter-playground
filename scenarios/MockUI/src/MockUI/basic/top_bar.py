@@ -61,7 +61,11 @@ class TopBar(lv.obj):
                 self.gui.show_menu("settings")
 
     def refresh(self, state):
-        """Update battery from state."""
+        """Keep the shared header hidden while the device is locked."""
+        if state.is_locked:
+            self.add_flag(lv.obj.FLAG.HIDDEN)
+            return
+        self.remove_flag(lv.obj.FLAG.HIDDEN)
         if state.has_battery:
             self.batt_icon.update(state.battery_pct, state.is_charging)
         else:

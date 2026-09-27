@@ -108,7 +108,13 @@ class LockedScreen(lv.obj):
 
     def _try_unlock(self):
         if self.gui.specter_state.unlock(self._pin_buffer):
-            self.gui.show_menu("main")
+            # First login has no key/seed to manage yet. Start at the
+            # seed-management page so the user can import or generate one.
+            if self.gui.specter_state.loaded_seeds:
+                self.gui.show_menu("main")
+            else:
+                self.gui.ui_state.clear_history()
+                self.gui.show_menu("seed_management")
         else:
             self.error_label.set_text(_tr("SCHN_WRONG_PIN"))
             self._pin_buffer = ""

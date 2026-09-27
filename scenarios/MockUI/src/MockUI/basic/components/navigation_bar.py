@@ -166,9 +166,6 @@ class NavigationBar(SpecterGuiElement):
             seed_open = self._seed_dropup.get_state() in (DropUpState.OPENING, DropUpState.OPEN)
             wallet_open = self._wallet_dropup.get_state() in (DropUpState.OPENING, DropUpState.OPEN)
 
-            no_seed_loaded = (self.gui.device_state is None
-                              or len(self.gui.device_state.loaded_seeds) == 0)
-
             # (name, filled icon, outline icon, is-filled condition, is-disabled condition)
             icon_table = [
                 ("Home", BTC_ICONS.HOME, BTC_ICONS.HOME_OUTLINE,
@@ -176,10 +173,10 @@ class NavigationBar(SpecterGuiElement):
                  False),
                 ("Seed", BTC_ICONS.KEY, BTC_ICONS.KEY_OUTLINE,
                  (self.context == Context.SEED and not wallet_open) or seed_open,
-                 no_seed_loaded),
+                 False),
                 ("Wallet", BTC_ICONS.WALLET, BTC_ICONS.WALLET_OUTLINE,
                  (self.context == Context.WALLET and not seed_open) or wallet_open,
-                 no_seed_loaded),
+                 False),
                 ("Device", BTC_ICONS.GEAR, BTC_ICONS.GEAR_OUTLINE,
                  self.context == Context.DEVICE and not seed_open and not wallet_open,
                  False),
@@ -228,7 +225,8 @@ class NavigationBar(SpecterGuiElement):
 
     def _seed_cb(self):
         if self._can_dispatch("Seed"):
-            self._dropup_button_cb(self._seed_dropup, self._wallet_dropup)
+            self.close_dropups()
+            self.on_navigate("seed_management")
 
     def _home_cb(self):
         if self._can_dispatch("Home"):
@@ -237,7 +235,8 @@ class NavigationBar(SpecterGuiElement):
 
     def _wallet_cb(self):
         if self._can_dispatch("Wallet"):
-            self._dropup_button_cb(self._wallet_dropup, self._seed_dropup)
+            self.close_dropups()
+            self.on_navigate("wallet_menu")
 
     def _device_cb(self):
         if self._can_dispatch("Device"):

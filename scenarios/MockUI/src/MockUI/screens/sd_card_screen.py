@@ -244,6 +244,7 @@ class SDCardScreen(lv.obj):
         imported_seeds = 0
         imported_wallets = 0
         failures = 0
+        first_wallet = None
         for entry in self.storage.list_sd_entries():
             try:
                 if entry["kind"] == self.storage.SD_SEED:
@@ -252,15 +253,19 @@ class SDCardScreen(lv.obj):
                     )
                     imported_seeds += 1 if imported else 0
                 elif entry["kind"] == self.storage.SD_WALLET:
-                    _, imported = self._import_wallet(
+                    wallet, imported = self._import_wallet(
                         entry["name"], entry["label"], navigate=False
                     )
+                    if first_wallet is None:
+                        first_wallet = wallet
                     imported_wallets += 1 if imported else 0
             except Exception as exc:
                 failures += 1
                 print("SD bulk import:", entry["name"], exc)
 
         self.gui.specter_state.sort_bip85_seeds()
+        if first_wallet is not None:
+            self.gui.specter_state.set_active_wallet(first_wallet)
 
         result = "Imported %d seed phrase(s) and %d wallet(s)" % (
             imported_seeds, imported_wallets
