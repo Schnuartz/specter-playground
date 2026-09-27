@@ -63,11 +63,11 @@ _VIEW_MAP.update({
 
 class SpecterGui(RebuildableObj):
 
-    # Ordered list: _init_grid() builds children top-to-bottom in list order.
-    # MicroPython dicts do NOT preserve insertion order!
+    # Create the viewport first, then overlay the shared header and bottom bar.
+    # Later LVGL children are drawn above earlier ones.
     _SUBELEMENTS = [
-        ("top_bar",        TopBar),
         ("app_screen",     AppScreen),
+        ("top_bar",        TopBar),
         ("navigation_bar", NavigationBar),
     ]
 
