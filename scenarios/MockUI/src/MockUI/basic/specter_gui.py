@@ -190,7 +190,7 @@ class SpecterGui(RebuildableObj):
 
         # Update UIState navigation history
         if target_menu_id in ["start_intro_tour", "main", "locked"]:
-            anim = self.ui_state.clear_history()
+            anim = self.ui_state.clear_history(preserve_selection=target_menu_id == "main")
             self.ui_state.current_menu_id = target_menu_id
         elif going_back:
             anim = self.ui_state.pop_menu()

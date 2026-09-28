@@ -148,7 +148,6 @@ class SeedDetailScreen(lv.obj):
         if e.get_code() != lv.EVENT.CLICKED:
             return
         self.gui.specter_state.set_active_seed(self.seed)
-        self.gui.ui_state.clear_history()
         self.gui.show_menu("main")
 
     def _navigate(self, target):

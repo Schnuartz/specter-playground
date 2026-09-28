@@ -162,13 +162,18 @@ class UIState:
         return None  # fallback: just disappear, no animation
 
 
-    def clear_history(self):
+    def clear_history(self, preserve_selection=False):
         if len(self.history) > 0 and self.current_menu_id != "main":
             anim = self.backward_transition_type(self.forward_transition_type(Context.MAIN, self.active_context))
         else:
             anim = None
+        active_seed = self.active_seed
+        active_wallet = self.active_wallet
         self.history.clear()
         self._set_to_main()
+        if preserve_selection:
+            self.active_seed = active_seed
+            self.active_wallet = active_wallet
         return anim
 
     @property
