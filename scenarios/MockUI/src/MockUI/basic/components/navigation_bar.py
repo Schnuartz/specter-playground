@@ -241,6 +241,5 @@ class NavigationBar(SpecterGuiElement):
     def _device_cb(self):
         if self._can_dispatch("Device"):
             self.close_dropups()
-            if self.context != Context.DEVICE:
-                self.on_navigate("manage_settings")
+            self.on_navigate("manage_settings")
             self.refresh()

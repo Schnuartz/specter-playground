@@ -82,4 +82,4 @@ class ScanScreen(lv.obj):
             background_style="APPEARANCE.TRANSPARENT",
             foreground_style="WIDGET.HELP_ICON",
         )
-        help_btn.align(lv.ALIGN.TOP_LEFT, PAD_MD, PAD_MD)
+        help_btn.align(lv.ALIGN.TOP_LEFT, 0, 0)
