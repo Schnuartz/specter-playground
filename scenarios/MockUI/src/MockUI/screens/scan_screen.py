@@ -52,7 +52,7 @@ class ScanScreen(lv.obj):
         # Status text
         status = lv.label(self)
         status.set_text(_tr("SCHN_POINT_CAMERA"))
-        status.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
+        status.set_style_text_font(theme_font(FONT_TITLE_THEME), 0)
         status.set_style_text_color(theme_color(GREY_LIGHT_HEX), 0)
 
         # Auto-detect info
