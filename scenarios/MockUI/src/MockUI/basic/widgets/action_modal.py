@@ -7,6 +7,7 @@ from .menu_item import MenuItem
 from .inputs import confirmation_slider
 from ..theming import apply_style
 from ..utils import set_align
+from ..templates.specter_gui_base import t
 
 
 def _action_modal(text, title=None, parent=None):
@@ -65,7 +66,7 @@ def button_modal(text, title=None, buttons=None, auto_close=True, parent=None):
                     spotlight/coach-mark overlay with its own dim strips).
     """
     if buttons is None or len(buttons) == 0:
-        buttons = [MenuItem(text="Close")]
+        buttons = [MenuItem(text=t("MODAL_CLOSE_BTN"))]
 
     overlay, modal_window = _action_modal(text, title=title, parent=parent)
 

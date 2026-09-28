@@ -314,6 +314,10 @@
       "text": "Aktion: ",
       "ref_en": "Action: "
     },
+    "MODAL_CLOSE_BTN": {
+      "text": "Schließen",
+      "ref_en": "Close"
+    },
     "MODAL_DELETE_WALLET_TEXT": {
       "text": "Wallet \"%s\" löschen?\nDies kann nicht rückgängig gemacht werden.",
       "ref_en": "Delete wallet \"%s\"?\nThis cannot be undone."
