@@ -70,7 +70,7 @@ class ScanScreen(lv.obj):
         info.set_width(lv.pct(100))
         info.set_long_mode(lv.label.LONG_MODE.WRAP)
         info.set_style_text_align(lv.TEXT_ALIGN.CENTER, 0)
-        info.set_style_text_font(theme_font(FONT_TEXT_THEME), 0)
+        info.set_style_text_font(theme_font(FONT_TITLE_THEME), 0)
         info.set_style_text_color(theme_color(GREY_LIGHT_HEX), 0)
 
         help_text = _tr("MAIN_MENU_SCAN_QR") + "\n\n" + _tr("HELP_SCAN_QR")
